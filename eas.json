@@ -9,7 +9,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_NO_CDN": "true"
+        "EXPO_EAS_API_ENDPOINT": "https://eu.expo.dev"
       }
     }
   },
