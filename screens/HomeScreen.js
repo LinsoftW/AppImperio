@@ -63,6 +63,7 @@ const HomeScreen = ({ navigation, route }) => {
     const addToCart = async (product) => {
         const quantity = quantities[product.id] || 1;
         const userId = user?.id || await AsyncStorage.getItem('userId');
+        // console.log(userId)
 
         if (!userId) {
             Alert.alert('Error', 'Debes iniciar sesión para agregar al carrito');
@@ -75,7 +76,7 @@ const HomeScreen = ({ navigation, route }) => {
                 idproducto: product.id,
                 cantidad: quantity,
             });
-
+// console.log(response.data)
             Alert.alert('Éxito', 'Producto añadido al carrito');
             // Resetear la cantidad después de añadir
             setQuantities(prev => ({ ...prev, [product.id]: 1 }));
@@ -205,9 +206,9 @@ const HomeScreen = ({ navigation, route }) => {
 
     const renderProducto = ({ item }) => (
         <View style={styles.itemContainer}>
-            <Image source={{ uri: `http://${Config.server}:${Config.puerto}/${item.attributes.imagen}` }} style={styles.imagen} onPress={() => navigation.navigate('Detalles', { productoId: item.attributes.nombre, precio: item.attributes.precio, stock: item.attributes.cantidad, imag: item.attributes.imagen, descripcion: item.attributes.descripcion })} />
+            <Image source={{ uri: `http://${Config.server}:${Config.puerto}/${item.attributes.imagen}` }} style={styles.imagen} onPress={() => navigation.navigate('Detalles', { productoId: item.attributes.nombre, precio: item.attributes.precio, stock: item.attributes.cantidad, imag: item.attributes.imagen, descripcion: item.attributes.descripcion, id: item.id, usuario: user })} />
             <View style={styles.info}>
-                <Text style={styles.nombre} onPress={() => navigation.navigate('Detalles', { productoId: item.attributes.nombre, precio: item.attributes.precio, stock: item.attributes.cantidad, imag: item.attributes.imagen, descripcion: item.attributes.descripcion })}>{item.attributes.nombre}</Text>
+                <Text style={styles.nombre} onPress={() => navigation.navigate('Detalles', { productoId: item.attributes.nombre, precio: item.attributes.precio, stock: item.attributes.cantidad, imag: item.attributes.imagen, descripcion: item.attributes.descripcion, id: item.id, usuario: user })}>{item.attributes.nombre}</Text>
                 <Text style={styles.precio}>$ {item.attributes.precio}</Text>
                 <QuantitySelector
                     initialQuantity={quantities[item.id] || 1}
@@ -229,7 +230,7 @@ const HomeScreen = ({ navigation, route }) => {
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={styles.botonDetalles}
-                        onPress={() => navigation.navigate('Detalles', { productoId: item.attributes.nombre, precio: item.attributes.precio, stock: item.attributes.cantidad, imag: item.attributes.imagen, descripcion: item.attributes.descripcion })}
+                        onPress={() => navigation.navigate('Detalles', { productoId: item.attributes.nombre, precio: item.attributes.precio, stock: item.attributes.cantidad, imag: item.attributes.imagen, descripcion: item.attributes.descripcion, id: item.id, usuario: user })}
                     >
                         <Icon name="list" size={20} color="#000" style={styles.iconoCarrito} />
                     </TouchableOpacity>
@@ -458,7 +459,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(255,255,255,0.15)',
         borderRadius: 12,
         padding: 12,
-        marginBottom: 16,
+        marginBottom: 10,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,

@@ -281,13 +281,23 @@ export default function AddProductos() {
         >
             <ScrollView contentContainerStyle={styles.scrollContainer}>
                 <View style={styles.formContainer}>
-                    <Button
+                    <TouchableOpacity style={styles.imageButton} onPress={pickImage}>
+                        {image ? (
+                            <Image source={{ uri: image }} style={styles.profileImage} />
+                        ) : (
+                            <View style={styles.imagePlaceholder}>
+                                <Icon name="camera" size={50} color="#FFF" />
+                                <Text style={styles.imageText}>Subir foto</Text>
+                            </View>
+                        )}
+                    </TouchableOpacity>
+                    {/* <Button
                         title="Seleccionar imagen"
                         color='#FF0'
                         onPress={pickImage}
                     />
 
-                    {image && <Image source={{ uri: image }} style={styles.image} />}
+                    {image && <Image source={{ uri: image }} style={styles.image} />} */}
 
                     <TextInput
                         style={styles.input}
@@ -317,7 +327,7 @@ export default function AddProductos() {
                         placeholder="Descripción"
                         value={productData.descripcion}
                         onChangeText={(text) => handleChange('descripcion', text)}
-                        // keyboardType="numeric"
+                    // keyboardType="numeric"
                     />
                 </View>
 
@@ -354,6 +364,31 @@ export default function AddProductos() {
 }
 
 const styles = StyleSheet.create({
+    imageButton: {
+        marginBottom: 20,
+    },
+    profileImage: {
+        width: 150,
+        height: 150,
+        borderRadius: 75,
+        borderWidth: 3,
+        borderColor: '#FFF',
+    },
+    imagePlaceholder: {
+        width: 150,
+        height: 150,
+        borderRadius: 75,
+        backgroundColor: 'rgba(255,255,255,0.2)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 2,
+        borderColor: '#FFF',
+        borderStyle: 'dashed',
+    },
+    imageText: {
+        color: '#FFF',
+        marginTop: 10,
+    },
     buttonText: {
         color: '#FFF',
         fontWeight: '600',

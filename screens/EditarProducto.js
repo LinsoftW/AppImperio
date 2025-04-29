@@ -18,7 +18,7 @@ export default function EditarProducto() {
         imagen_id: ''
     });
     const [originalImage, setOriginalImage] = useState(null);
-    
+
     const navigation = useNavigation();
     const route = useRoute();
     const { producto } = route.params; // Recibimos el producto completo desde EliminarProducto
@@ -84,7 +84,7 @@ export default function EditarProducto() {
 
         try {
             let imagen_id = productData.imagen_id;
-            
+
             // Si la imagen ha cambiado (es una nueva URI local)
             if (image && image !== originalImage && !image.startsWith('http')) {
                 // Subir la nueva imagen
@@ -100,7 +100,7 @@ export default function EditarProducto() {
                         'Content-Type': 'multipart/form-data',
                     },
                 });
-                
+
                 imagen_id = imageResponse.data.id;
             }
 
@@ -127,13 +127,23 @@ export default function EditarProducto() {
         >
             <ScrollView contentContainerStyle={styles.scrollContainer}>
                 <View style={styles.formContainer}>
-                    <Button
+                    <TouchableOpacity style={styles.imageButton} onPress={pickImage}>
+                        {image ? (
+                            <Image source={{ uri: image }} style={styles.image} />
+                        ) : (
+                            <View style={styles.imagePlaceholder}>
+                                <Icon name="camera" size={50} color="#FFF" />
+                                <Text style={styles.imageText}>Cambiar imagen</Text>
+                            </View>
+                        )}
+                    </TouchableOpacity>
+                    {/* <Button
                         title="Cambiar imagen"
                         color='#FF0'
                         onPress={pickImage}
                     />
 
-                    {image && <Image source={{ uri: image }} style={styles.image} />}
+                    {image && <Image source={{ uri: image }} style={styles.image} />} */}
 
                     <TextInput
                         style={styles.input}
@@ -163,7 +173,7 @@ export default function EditarProducto() {
                         placeholder="Descripción"
                         value={productData.descripcion}
                         onChangeText={(text) => handleChange('descripcion', text)}
-                        // keyboardType="numeric"
+                    // keyboardType="numeric"
                     />
                 </View>
 
@@ -176,9 +186,9 @@ export default function EditarProducto() {
                         <Text style={styles.buttonText}> Atrás</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity 
-                        style={styles.buyNowButton} 
-                        onPress={updateProduct} 
+                    <TouchableOpacity
+                        style={styles.buyNowButton}
+                        onPress={updateProduct}
                         disabled={uploading}
                     >
                         <FontAwesome name="save" size={20} color="#FFF" />
@@ -194,6 +204,31 @@ export default function EditarProducto() {
 }
 
 const styles = StyleSheet.create({
+    imageButton: {
+        marginBottom: 20,
+    },
+    profileImage: {
+        width: 150,
+        height: 150,
+        borderRadius: 75,
+        borderWidth: 3,
+        borderColor: '#FFF',
+    },
+    imagePlaceholder: {
+        width: 150,
+        height: 150,
+        borderRadius: 75,
+        backgroundColor: 'rgba(255,255,255,0.2)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 2,
+        borderColor: '#FFF',
+        borderStyle: 'dashed',
+    },
+    imageText: {
+        color: '#FFF',
+        marginTop: 10,
+    },
     buttonText: {
         color: '#FFF',
         fontWeight: '600',

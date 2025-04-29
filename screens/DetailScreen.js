@@ -37,42 +37,59 @@
 
 // export default DetallesScreen;
 
-import React from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import { Config } from '../Config';
-// import Config from 'react-native-config';
-
-// const BackButton = () => {
-//     const navigation = useNavigation();
-
-//     return (
-//         <View >
-//             <TouchableOpacity
-//                 style={{
-//                     flexDirection: 'row',
-//                     alignItems: 'center',
-//                     padding: 10,
-//                     color: '#FFF',
-//                 }}
-//                 onPress={() => navigation.goBack()}
-//             >
-//                 <Icon name="arrow-back" size={24} color="#000" />
-//                 <Text style={{ color: '#FFF', marginLeft: 5, fontSize: 16 }}>
-//                     Atrás
-//                 </Text>
-//             </TouchableOpacity>
-//         </View>
-//     );
-// };
+import QuantitySelector from './QuantitySelector';
+// import { useUser } from './UserContext';
+import axios from 'axios';
 
 const DetallesScreen = ({ route, navigation }) => {
-    const { productoId, precio, stock, imag, descripcion } = route.params;
+    const { productoId, precio, stock, imag, descripcion, id, usuario } = route.params;
 
-    // const server = '192.168.1.101';
-    // const puerto = "5000";
+    // const { user } = useUser();
+
+    // Estado para guardar las cantidades seleccionadas
+    const [quantities, setQuantities] = useState({});
+
+    const handleQuantityChange = (productId, newQuantity) => {
+        // console.log(productId)
+        setQuantities(prev => ({
+            ...prev,
+            [productId]: newQuantity
+        }));
+    };
+
+    const addToCart = async (id) => {
+        // console.log(id)
+        const quantity = quantities[id] || 1;
+        const userId = {usuario}.usuario?.id || await AsyncStorage.getItem('userId');
+        // console.log(id)
+
+        if (!userId) {
+            Alert.alert('Error', 'Debes iniciar sesión para agregar al carrito');
+            navigation.navigate('Login');
+            return;
+        }
+        try {
+            // console.log(quantity)
+            const response = await axios.post(`http://${Config.server}:${Config.puerto}/carrito/agregar`, {
+                idpersona: userId, // Asumiendo que tienes autenticación
+                idproducto: id,
+                cantidad: quantity,
+            });
+// console.log(response)
+            Alert.alert('Éxito', 'Producto añadido al carrito');
+            // Resetear la cantidad después de añadir
+            setQuantities(prev => ({ ...prev, [id]: 1 }));
+        } catch (error) {
+            Alert.alert('Error', 'No se pudo añadir al carrito');
+        }
+        // Aquí llamarías a tu API para añadir al carrito
+    };
 
     const BackButton = () => {
         const navigation = useNavigation();
@@ -116,24 +133,25 @@ const DetallesScreen = ({ route, navigation }) => {
                 <View style={styles.card}>
                     <Image
                         source={{ uri: `http://${Config.server}:${Config.puerto}/${imag}` }}
-                        style={styles.imagen}
+                        style={styles.imagePlaceholder}
                         resizeMode="contain"
                     />
-
                     <View style={styles.detailsContainer}>
                         <Text style={styles.productName}>{productoId}</Text>
                         <Text style={styles.price}>${precio}</Text>
                         <Text style={styles.productName}>Cantidad en stock: {stock}</Text>
-
+                        <QuantitySelector
+                            initialQuantity={quantities[{id}] || 1}
+                            onQuantityChange={(qty) => handleQuantityChange({id}.id, qty)}
+                        />
                         <View style={styles.separator} />
-
                         <Text style={styles.sectionTitle}>Descripción</Text>
                         <Text style={styles.description}>
                             {descripcion}
                         </Text>
 
                         <View style={styles.buttonContainer}>
-                            <TouchableOpacity style={styles.addToCartButton}>
+                            <TouchableOpacity style={styles.addToCartButton} onPress={() => addToCart({id}.id)}>
                                 <Icon name="cart-outline" size={20} color="#FFF" />
                                 <Text style={styles.buttonText}>Añadir al carrito</Text>
                             </TouchableOpacity>
@@ -163,6 +181,38 @@ const DetallesScreen = ({ route, navigation }) => {
 };
 
 const styles = StyleSheet.create({
+    imageButton: {
+        marginBottom: 20,
+    },
+    profileImage: {
+        width: 150,
+        height: 150,
+        borderRadius: 75,
+        borderWidth: 3,
+        borderColor: '#FFF',
+    },
+    imagePlaceholder: {
+        width: '100%',
+        height: 180,
+        // width: '100%',
+        // height: 250,
+        marginBottom: 20,
+        borderRadius: 10,
+        backgroundColor: 'rgba(255,255,255,0.2)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 2,
+        borderColor: '#FFF',
+        borderStyle: 'dashed',
+    },
+    imagen: {
+        width: '100%',
+        height: 250,
+        justifyContent: 'center',
+        borderRadius: 12,
+        marginBottom: 20,
+        backgroundColor: 'rgba(255,255,255,0.2)',
+    },
     registerText: {
         color: '#fff',
         marginTop: 20,
@@ -202,13 +252,6 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 6,
         elevation: 5,
-    },
-    imagen: {
-        width: '100%',
-        height: 250,
-        borderRadius: 12,
-        marginBottom: 20,
-        backgroundColor: 'rgba(255,255,255,0.2)',
     },
     detailsContainer: {
         paddingHorizontal: 10,

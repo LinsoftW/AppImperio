@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "298071766892",
+    "project_id": "imperio-fe05f",
+    "storage_bucket": "imperio-fe05f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:298071766892:android:d8fc999733d1a76912a549",
+        "android_client_info": {
+          "package_name": "com.anonymous.appImperio"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA3ml7bOemVbBxdxoHq8WyVIQCetYMCoaY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

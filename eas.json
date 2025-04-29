@@ -6,14 +6,12 @@
   "build": {
     "production": {
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "credentialsSource": "remote"
       },
       "env": {
         "EXPO_EAS_API_ENDPOINT": "https://eu.expo.dev"
       }
     }
-  },
-  "submit": {
-    "production": {}
   }
 }

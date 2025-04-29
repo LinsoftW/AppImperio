@@ -15,8 +15,10 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSPhotoLibraryUsageDescription": "Permite acceder a tu galería para subir imágenes."
-      }
+        "NSPhotoLibraryUsageDescription": "Permite acceder a tu galería para subir imágenes.",
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "bundleIdentifier": "com.anonymous.appImperio"
     },
     "android": {
       "adaptiveIcon": {
