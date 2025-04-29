@@ -13,5 +13,8 @@
         "EXPO_EAS_API_ENDPOINT": "https://eu.expo.dev"
       }
     }
+  },
+  "submit": {
+    "production": {}
   }
 }
