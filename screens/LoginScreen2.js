@@ -63,16 +63,19 @@ const LoginScreen2 = ({ navigation, onLogin }) => {
 
             if (response.data.existe) {
                 // Guarda TODOS los datos relevantes del usuario
-                login({
-                    id: response.data.usuario.id,
-                    // nombre: response.data.datos.attributes.nombre,
-                    nick: response.data.usuario.nick,
-                    telefono: response.data.usuario.telefono,
-                    direccion: response.data.usuario.direccion
-                    // token: response.data.token
-                    // ... otros datos que necesites
-                });
+                // login({
+                //     id: response.data.usuario.id,
+                //     // nombre: response.data.datos.attributes.nombre,
+                //     // nick: response.data.usuario.nick,
+                //     // telefono: response.data.usuario.telefono,
+                //     // direccion: response.data.usuario.direccion
+                //     token: response.data.token
+                //     // ... otros datos que necesites
+                // });
+                await AsyncStorage.removeItem('anonUser'); // Limpiar sesión anónima si existe
+                login(response.data)// Guardar usuario normal
                 onLogin(); // Cambia el estado a logueado
+                // Al iniciar sesión exitosamente:
                 setLoading(false)
             } else {
                 Alert.alert('Error', 'Nick o teléfono no encontrado en el sistema.');

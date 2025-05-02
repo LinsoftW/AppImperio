@@ -5,6 +5,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { useUser } from './UserContext';
 import axios from 'axios';
 import { Config } from '../Config';
+import api from '../api/api';
 
 const CarritoScreen = ({ navigation }) => {
     const { user } = useUser();
@@ -53,19 +54,14 @@ const CarritoScreen = ({ navigation }) => {
 
     const actualizarCantidad = async (itemId, nuevaCantidad) => {
         const producto = carrito.find(item => item.id === itemId);
-        // console.log(producto)
-        // if (producto && nuevaCantidad > producto.attributes.cantidad) {
-        //     Alert.alert(
-        //         'Stock insuficiente',
-        //         `Solo hay ${producto.attributes.cantidad} unidades disponibles`
-        //     );
-        //     return;
-        // }
         try {
-            const response = await axios.put(
-                `http://${Config.server}:${Config.puerto}/carrito/${itemId}`,
-                { cantidad: nuevaCantidad }
-            );
+            // const response = await axios.put(
+            //     `http://${Config.server}:${Config.puerto}/carrito/${itemId}`,
+            //     { cantidad: nuevaCantidad }
+            // );
+            const response = await api.put(`/carrito/${itemId}`, {
+                cantidad: nuevaCantidad
+            });
             // console.log(response.data)
             if (response.data.success) {
                 if (producto && nuevaCantidad > response.data.stockDisponible) {
@@ -110,7 +106,8 @@ const CarritoScreen = ({ navigation }) => {
 
     const eliminarItem = async (itemId) => {
         try {
-            await axios.delete(`http://${Config.server}:${Config.puerto}/carrito/${itemId}`);
+            // await axios.delete(`http://${Config.server}:${Config.puerto}/carrito/${itemId}`);
+            await api.delete(`/carrito/${itemId}`);
             cargarCarrito();
         } catch (error) {
             Alert.alert('Error', 'No se pudo eliminar el item');
@@ -216,7 +213,7 @@ const CarritoScreen = ({ navigation }) => {
 
                     <TouchableOpacity
                         style={styles.pagarButton}
-                        onPress={() => navigation.navigate('Checkout')}
+                        onPress={() => navigation.navigate('Checkout1', { total: total, pagina: 'M'})}
                     >
                         <Text style={styles.pagarButtonText}>Proceder al pago</Text>
                         <Icon name="arrow-forward" size={20} color="#FFF" />

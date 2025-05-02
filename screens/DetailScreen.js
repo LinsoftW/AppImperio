@@ -44,51 +44,113 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import { Config } from '../Config';
 import QuantitySelector from './QuantitySelector';
-// import { useUser } from './UserContext';
+import { useUser } from './UserContext';
 import axios from 'axios';
+import api from '../api/api';
 
 const DetallesScreen = ({ route, navigation }) => {
-    const { productoId, precio, stock, imag, descripcion, id, usuario } = route.params;
+    const { productoId, precio, stock, imag, descripcion, id, usuario, cantActual } = route.params;
 
-    // const { user } = useUser();
+    const { user } = useUser();
 
     // Estado para guardar las cantidades seleccionadas
     const [quantities, setQuantities] = useState({});
 
     const handleQuantityChange = (productId, newQuantity) => {
-        // console.log(productId)
         setQuantities(prev => ({
             ...prev,
             [productId]: newQuantity
         }));
     };
 
-    const addToCart = async (id) => {
-        // console.log(id)
+    const ComprarAhora = (p) => {
         const quantity = quantities[id] || 1;
-        const userId = {usuario}.usuario?.id || await AsyncStorage.getItem('userId');
-        // console.log(id)
+        navigation.navigate('Checkout1', { total: p * quantity, pagina: 'S' })
+    }
 
-        if (!userId) {
-            Alert.alert('Error', 'Debes iniciar sesión para agregar al carrito');
-            navigation.navigate('Login');
-            return;
-        }
+    const addToCart = async (product) => {
+        const quantity = quantities[product.id] || 1;
+
         try {
-            // console.log(quantity)
-            const response = await axios.post(`http://${Config.server}:${Config.puerto}/carrito/agregar`, {
-                idpersona: userId, // Asumiendo que tienes autenticación
+            // 1. Verificar si hay usuario logueado
+            // console.log(user.id)
+            let userId = user?.id;
+            let token = user?.token;
+
+            // Si no hay usuario, verificar si existe anónimo en AsyncStorage
+            if (!userId) {
+                // console.log("Nooo")
+                const anonUser = await AsyncStorage.getItem('anonUser');
+                if (anonUser) {
+                    const parsedAnon = JSON.parse(anonUser);
+                    userId = parsedAnon.id;
+                    token = parsedAnon.token;
+                }
+            }
+
+            // 2. Si no hay ningún usuario, redirigir a selección de login/anonimo
+            if (!userId) {
+                Alert.alert(
+                    'Acción requerida',
+                    '¿Deseas continuar como invitado o iniciar sesión?',
+                    [
+                        {
+                            text: 'Invitado',
+                            onPress: () => registerAnonymous(),
+                            style: 'default'
+                        },
+                        {
+                            text: 'Iniciar sesión',
+                            onPress: () => navigation.navigate('Login'),
+                            style: 'cancel'
+                        }
+                    ]
+                );
+                return;
+            }
+            // 3. Hacer la petición con el token
+            const response = await api.post('/carrito/agregar', {
+                idpersona: userId,
                 idproducto: id,
                 cantidad: quantity,
             });
-// console.log(response)
+
+            // 4. Manejar respuesta exitosa
             Alert.alert('Éxito', 'Producto añadido al carrito');
-            // Resetear la cantidad después de añadir
-            setQuantities(prev => ({ ...prev, [id]: 1 }));
+            setQuantities(prev => ({ ...prev, [product.id]: 1 }));
+
+            // 5. Si el usuario es anónimo, sugerir registro
+            if (user?.esAnonimo) {
+                Alert.alert(
+                    'Cuenta temporal',
+                    'Para finalizar tu compra necesitas registrar una cuenta completa',
+                    [
+                        { text: 'Registrarme', onPress: () => navigation.navigate('Registro') },
+                        { text: 'Más tarde', style: 'cancel' }
+                    ]
+                );
+            }
+
         } catch (error) {
-            Alert.alert('Error', 'No se pudo añadir al carrito');
+            // 6. Manejo específico de errores
+            if (error.response?.status === 403) {
+                if (error.response.data?.code === 'UPGRADE_REQUIRED') {
+                    Alert.alert(
+                        'Acción requerida',
+                        'Para agregar al carrito necesitas una cuenta completa',
+                        [
+                            { text: 'Registrarme', onPress: () => navigation.navigate('Registro') },
+                            { text: 'Iniciar sesión', onPress: () => navigation.navigate('Login') }
+                        ]
+                    );
+                } else {
+                    Alert.alert('Error', 'No tienes permiso para esta acción');
+                }
+            } else {
+                Alert.alert('Error', 'No se pudo añadir al carrito');
+                console.error('Error adding to cart:', error);
+            }
         }
-        // Aquí llamarías a tu API para añadir al carrito
     };
 
     const BackButton = () => {
@@ -141,8 +203,9 @@ const DetallesScreen = ({ route, navigation }) => {
                         <Text style={styles.price}>${precio}</Text>
                         <Text style={styles.productName}>Cantidad en stock: {stock}</Text>
                         <QuantitySelector
-                            initialQuantity={quantities[{id}] || 1}
-                            onQuantityChange={(qty) => handleQuantityChange({id}.id, qty)}
+                            initialQuantity={cantActual}
+                            onQuantityChange={(qty) => handleQuantityChange({ id }.id, qty)}
+                            maxQuantity={stock}
                         />
                         <View style={styles.separator} />
                         <Text style={styles.sectionTitle}>Descripción</Text>
@@ -151,12 +214,12 @@ const DetallesScreen = ({ route, navigation }) => {
                         </Text>
 
                         <View style={styles.buttonContainer}>
-                            <TouchableOpacity style={styles.addToCartButton} onPress={() => addToCart({id}.id)}>
+                            <TouchableOpacity style={styles.addToCartButton} onPress={() => addToCart({ id })}>
                                 <Icon name="cart-outline" size={20} color="#FFF" />
                                 <Text style={styles.buttonText}>Añadir al carrito</Text>
                             </TouchableOpacity>
 
-                            <TouchableOpacity style={styles.buyNowButton}>
+                            <TouchableOpacity style={styles.buyNowButton} onPress={() => ComprarAhora(precio)}>
                                 <Icon name="flash-outline" size={20} color="#FFF" />
                                 <Text style={styles.buttonText}>Comprar ahora</Text>
                             </TouchableOpacity>

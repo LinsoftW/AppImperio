@@ -7,6 +7,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { Config } from '../Config';
+import api from '../api/api';
 
 export default function EditarProducto() {
     const [image, setImage] = useState(null);
@@ -15,6 +16,7 @@ export default function EditarProducto() {
         nombre: '',
         precio: '',
         cantidad: '',
+        descripcion: '',
         imagen_id: ''
     });
     const [originalImage, setOriginalImage] = useState(null);
@@ -26,11 +28,12 @@ export default function EditarProducto() {
     // Cargar los datos del producto al montar el componente
     useEffect(() => {
         if (producto) {
+            // console.log(producto)
             setProductData({
                 nombre: producto.attributes.nombre,
                 precio: producto.attributes.precio.toString(),
                 cantidad: producto.attributes.cantidad.toString(),
-                imagen_id: producto.attributes.imagen_id,
+                imagen_id: producto.id,
                 descripcion: producto.attributes.descripcion
             });
             setOriginalImage(`http://${Config.server}:${Config.puerto}/${producto.attributes.imagen}`);
@@ -83,11 +86,11 @@ export default function EditarProducto() {
         setUploading(true);
 
         try {
-            let imagen_id = productData.imagen_id;
-
+            let idimagen = productData.imagen_id;
             // Si la imagen ha cambiado (es una nueva URI local)
             if (image && image !== originalImage && !image.startsWith('http')) {
                 // Subir la nueva imagen
+                // console.log('cambio')
                 const formData = new FormData();
                 formData.append('imagen', {
                     uri: image,
@@ -95,19 +98,24 @@ export default function EditarProducto() {
                     type: 'image/jpeg',
                 });
 
-                const imageResponse = await axios.post(`http://${Config.server}:${Config.puerto}/upload`, formData, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                    },
-                });
-
-                imagen_id = imageResponse.data.id;
+                // const imageResponse = await axios.post(`http://${Config.server}:${Config.puerto}/upload`, formData, {
+                //     headers: {
+                //         'Content-Type': 'multipart/form-data',
+                //     },
+                // });
+                const imageResponse = await api.post(`/upload`, formData);
+                idimagen = imageResponse.data.id;
             }
 
             // Actualizar el producto
-            await axios.put(`http://${Config.server}:${Config.puerto}/productos/${producto.id}`, {
+            // await axios.put(`http://${Config.server}:${Config.puerto}/productos/${producto.id}`, {
+            //     ...productData,
+            //     imagen_id: idimagen
+            // });
+
+            await api.put(`/productos/${producto.id}`, {
                 ...productData,
-                imagen_id: imagen_id
+                imagen_id: idimagen
             });
 
             Alert.alert('Éxito', 'Producto actualizado correctamente.');

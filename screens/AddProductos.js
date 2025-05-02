@@ -166,6 +166,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { Config } from '../Config';
+import api from '../api/api';
 // import Config from 'react-native-config';
 
 export default function AddProductos() {
@@ -245,17 +246,20 @@ export default function AddProductos() {
                 type: 'image/jpeg',
             });
 
-            const imageResponse = await axios.post(`http://${Config.server}:${Config.puerto}/upload`, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
+            // const imageResponse = await axios.post(`http://${Config.server}:${Config.puerto}/upload`, formData, {
+            //     headers: {
+            //         'Content-Type': 'multipart/form-data',
+            //     },
+            // }, { timeout: 10000 });
+            const imageResponse = await api.post(`/upload`, formData);
 
             // Luego crear el producto con la imagen_id
-            const productResponse = await axios.post(`http://${Config.server}:${Config.puerto}/productos`, {
+            const productResponse = await api.post('/productos', {
                 ...productData,
                 imagen_id: imageResponse.data.id
             });
+
+            // console.log(productResponse)
 
             Alert.alert('Éxito', 'Producto creado correctamente.');
             productData.cantidad = "";

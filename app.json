@@ -4,11 +4,11 @@
     "slug": "appImperio",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/LogoImperio.jpg",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/LogoImperio.jpg",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -28,7 +28,7 @@
       "package": "com.anonymous.appImperio"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/LogoImperio.jpg"
     },
     "extra": {
       "eas": {

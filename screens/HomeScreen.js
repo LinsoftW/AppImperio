@@ -8,6 +8,8 @@ import { useUser } from './UserContext';
 import axios from 'axios';
 import QuantitySelector from './QuantitySelector';
 import { Config } from '../Config';
+import api from '../api/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 // import Config from 'react-native-config';
 
 const HomeScreen = ({ navigation, route }) => {
@@ -60,30 +62,143 @@ const HomeScreen = ({ navigation, route }) => {
         }));
     };
 
+    // const addToCart = async (product) => {
+    //     const quantity = quantities[product.id] || 1;
+    //     const userId = user?.id || await AsyncStorage.getItem('userId');
+    //     // console.log(userId)
+
+    //     if (!userId) {
+    //         Alert.alert('Error', 'Debes iniciar sesión para agregar al carrito');
+    //         navigation.navigate('Login');
+    //         return;
+    //     }
+    //     try {
+    //         const response = await axios.post(`http://${Config.server}:${Config.puerto}/carrito/agregar`, {
+    //             idpersona: userId, // Asumiendo que tienes autenticación
+    //             idproducto: product.id,
+    //             cantidad: quantity,
+    //         });
+    //         Alert.alert('Éxito', 'Producto añadido al carrito');
+    //         // Resetear la cantidad después de añadir
+    //         setQuantities(prev => ({ ...prev, [product.id]: 1 }));
+    //     } catch (error) {
+    //         Alert.alert('Error', 'No se pudo añadir al carrito');
+    //     }
+    // };
+    const comprobarStock = () => {
+
+    }
+
     const addToCart = async (product) => {
         const quantity = quantities[product.id] || 1;
-        const userId = user?.id || await AsyncStorage.getItem('userId');
-        // console.log(userId)
 
-        if (!userId) {
-            Alert.alert('Error', 'Debes iniciar sesión para agregar al carrito');
-            navigation.navigate('Login');
-            return;
-        }
         try {
-            const response = await axios.post(`http://${Config.server}:${Config.puerto}/carrito/agregar`, {
-                idpersona: userId, // Asumiendo que tienes autenticación
+            // 1. Verificar si hay usuario logueado
+            // console.log(user.id)
+            const Estadostock = comprobarStock()
+            let userId = user?.id;
+            let token = user?.token;
+
+            // Si no hay usuario, verificar si existe anónimo en AsyncStorage
+            if (!userId) {
+                // console.log("Nooo")
+                const anonUser = await AsyncStorage.getItem('anonUser');
+                if (anonUser) {
+                    const parsedAnon = JSON.parse(anonUser);
+                    userId = parsedAnon.id;
+                    token = parsedAnon.token;
+                }
+            }
+
+            // 2. Si no hay ningún usuario, redirigir a selección de login/anonimo
+            if (!userId) {
+                Alert.alert(
+                    'Acción requerida',
+                    '¿Deseas continuar como invitado o iniciar sesión?',
+                    [
+                        {
+                            text: 'Invitado',
+                            onPress: () => registerAnonymous(),
+                            style: 'default'
+                        },
+                        {
+                            text: 'Iniciar sesión',
+                            onPress: () => navigation.navigate('Login'),
+                            style: 'cancel'
+                        }
+                    ]
+                );
+                return;
+            }
+
+            // 3. Hacer la petición con el token
+            const response = await api.post('/carrito/agregar', {
+                idpersona: userId,
                 idproducto: product.id,
                 cantidad: quantity,
             });
-// console.log(response.data)
+
+            // 4. Manejar respuesta exitosa
             Alert.alert('Éxito', 'Producto añadido al carrito');
-            // Resetear la cantidad después de añadir
             setQuantities(prev => ({ ...prev, [product.id]: 1 }));
+
+            // 5. Si el usuario es anónimo, sugerir registro
+            if (user?.esAnonimo) {
+                Alert.alert(
+                    'Cuenta temporal',
+                    'Para finalizar tu compra necesitas registrar una cuenta completa',
+                    [
+                        { text: 'Registrarme', onPress: () => navigation.navigate('Registro') },
+                        { text: 'Más tarde', style: 'cancel' }
+                    ]
+                );
+            }
+
         } catch (error) {
-            Alert.alert('Error', 'No se pudo añadir al carrito');
+            // 6. Manejo específico de errores
+            if (error.response?.status === 403) {
+                if (error.response.data?.code === 'UPGRADE_REQUIRED') {
+                    Alert.alert(
+                        'Acción requerida',
+                        'Para agregar al carrito necesitas una cuenta completa',
+                        [
+                            { text: 'Registrarme', onPress: () => navigation.navigate('Registro') },
+                            { text: 'Iniciar sesión', onPress: () => navigation.navigate('Login') }
+                        ]
+                    );
+                } else {
+                    Alert.alert('Error', 'No tienes permiso para esta acción');
+                }
+            } else {
+                Alert.alert('Error', 'No se pudo añadir al carrito');
+                console.error('Error adding to cart:', error);
+            }
         }
-        // Aquí llamarías a tu API para añadir al carrito
+    };
+
+    // Función auxiliar para registro anónimo
+    const registerAnonymous = async () => {
+        try {
+            const response = await axios.post(`http://${Config.server}:${Config.puerto}/usuarios/anonimo`);
+
+            // Guardar usuario anónimo en AsyncStorage
+            await AsyncStorage.setItem('anonUser', JSON.stringify({
+                id: response.data.id,
+                token: response.data.token,
+                esAnonimo: true
+            }));
+
+            // Actualizar estado global (si usas Context, Redux, etc.)
+            setUser({
+                id: response.data.id,
+                token: response.data.token,
+                esAnonimo: true
+            });
+
+            Alert.alert('Modo invitado', 'Puedes navegar pero necesitarás registrarte para comprar');
+        } catch (error) {
+            Alert.alert('Error', 'No se pudo crear sesión temporal');
+        }
     };
 
     // Función para manejar el refresh
@@ -206,13 +321,14 @@ const HomeScreen = ({ navigation, route }) => {
 
     const renderProducto = ({ item }) => (
         <View style={styles.itemContainer}>
-            <Image source={{ uri: `http://${Config.server}:${Config.puerto}/${item.attributes.imagen}` }} style={styles.imagen} onPress={() => navigation.navigate('Detalles', { productoId: item.attributes.nombre, precio: item.attributes.precio, stock: item.attributes.cantidad, imag: item.attributes.imagen, descripcion: item.attributes.descripcion, id: item.id, usuario: user })} />
+            <Image source={{ uri: `http://${Config.server}:${Config.puerto}/${item.attributes.imagen}` }} style={styles.imagen} onPress={() => navigation.navigate('Detalles', { productoId: item.attributes.nombre, precio: item.attributes.precio, stock: item.attributes.cantidad, imag: item.attributes.imagen, descripcion: item.attributes.descripcion, id: item.id, usuario: user, cantActual: quantities[item.id] || 1 })} />
             <View style={styles.info}>
-                <Text style={styles.nombre} onPress={() => navigation.navigate('Detalles', { productoId: item.attributes.nombre, precio: item.attributes.precio, stock: item.attributes.cantidad, imag: item.attributes.imagen, descripcion: item.attributes.descripcion, id: item.id, usuario: user })}>{item.attributes.nombre}</Text>
+                <Text style={styles.nombre} onPress={() => navigation.navigate('Detalles', { productoId: item.attributes.nombre, precio: item.attributes.precio, stock: item.attributes.cantidad, imag: item.attributes.imagen, descripcion: item.attributes.descripcion, id: item.id, usuario: user, cantActual: quantities[item.id] || 1 })}>{item.attributes.nombre}</Text>
                 <Text style={styles.precio}>$ {item.attributes.precio}</Text>
                 <QuantitySelector
                     initialQuantity={quantities[item.id] || 1}
                     onQuantityChange={(qty) => handleQuantityChange(item.id, qty)}
+                    maxQuantity={item.attributes.cantidad}
                 />
 
                 <View style={styles.botonesContainer}>
@@ -230,7 +346,7 @@ const HomeScreen = ({ navigation, route }) => {
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={styles.botonDetalles}
-                        onPress={() => navigation.navigate('Detalles', { productoId: item.attributes.nombre, precio: item.attributes.precio, stock: item.attributes.cantidad, imag: item.attributes.imagen, descripcion: item.attributes.descripcion, id: item.id, usuario: user })}
+                        onPress={() => navigation.navigate('Detalles', { productoId: item.attributes.nombre, precio: item.attributes.precio, stock: item.attributes.cantidad, imag: item.attributes.imagen, descripcion: item.attributes.descripcion, id: item.id, usuario: user, cantActual: quantities[item.id] || 1})}
                     >
                         <Icon name="list" size={20} color="#000" style={styles.iconoCarrito} />
                     </TouchableOpacity>

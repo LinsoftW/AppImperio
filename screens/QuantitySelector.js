@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
-const QuantitySelector = ({ initialQuantity = 1, onQuantityChange, maxQuantity = 10 }) => {
+const QuantitySelector = ({ initialQuantity = 1, onQuantityChange, maxQuantity }) => {
   const [quantity, setQuantity] = useState(initialQuantity);
 
   const handleDecrease = () => {
@@ -22,9 +22,9 @@ const QuantitySelector = ({ initialQuantity = 1, onQuantityChange, maxQuantity =
       <TouchableOpacity onPress={handleDecrease} style={styles.button}>
         <Icon name="remove" size={20} color="#333" />
       </TouchableOpacity>
-      
+
       <Text style={styles.quantity}>{quantity}</Text>
-      
+
       <TouchableOpacity onPress={handleIncrease} style={styles.button}>
         <Icon name="add" size={20} color="#333" />
       </TouchableOpacity>

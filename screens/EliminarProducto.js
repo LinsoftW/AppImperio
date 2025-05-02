@@ -7,6 +7,7 @@ import { useIsFocused } from '@react-navigation/native';
 import { useUser } from './UserContext';
 import axios from 'axios';
 import { Config } from '../Config';
+import api from '../api/api';
 // import Config from 'react-native-config';
 
 const EliminarProducto = ({ navigation, route }) => {
@@ -54,11 +55,21 @@ const EliminarProducto = ({ navigation, route }) => {
                     onPress: async () => {
                         setLoading(true);
                         try {
-                            const response = await axios.delete(`http://${Config.server}:${Config.puerto}/productos`, {
-                                data: { confirm: 'true' },
-                                // headers: {
-                                //     'Authorization': `Bearer ${user.token}`
-                                // }
+                            // const response = await axios.delete(`http://${Config.server}:${Config.puerto}/productos`, {
+                            //     data: { confirm: 'true' },
+                            // });
+                            const response1 = await fetch(`http://${Config.server}:${Config.puerto}/productos`);
+                            const data = await response1.json();
+                            if (data.datos == "") {
+                                Alert.alert(
+                                    'Error',
+                                    `No hay productos en el almacén`,
+                                    [{ text: 'OK', onPress: () => navigation.goBack() }]
+                                );
+                                return;
+                            }
+                            const response = await api.delete(`/productos`, {
+                                data: { confirm: 'true' }
                             });
 
                             Alert.alert(
@@ -205,7 +216,8 @@ const EliminarProducto = ({ navigation, route }) => {
                             // fetchProductos(); // Actualizar la lista después de eliminar
                             try {
                                 // Cambia esta línea (asegúrate que la URL sea correcta)
-                                const response = await axios.delete(`http://${Config.server}:${Config.puerto}/productos/${itemId}`);
+                                // const response = await axios.delete(`http://${Config.server}:${Config.puerto}/productos/${itemId}`);
+                                const response = await api.delete(`/productos/${itemId}`);
                                 // console.log(response.data)
                                 if (response.data.success) {
                                     // Actualiza el estado local para evitar recargar toda la lista
@@ -268,7 +280,7 @@ const EliminarProducto = ({ navigation, route }) => {
                         onPress={() => navigation.navigate('Editar', { producto: item })}
                     >
                         <Icon name="pencil" size={20} color="#FFF" style={styles.iconoCarrito} />
-                    </TouchableOpacity> 
+                    </TouchableOpacity>
                     <TouchableOpacity
                         style={styles.botonDetalles}
                         onPress={() => handleDelete(item.id)}
