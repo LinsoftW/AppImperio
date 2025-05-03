@@ -21,16 +21,16 @@ import { Config } from '../Config';
 import api from '../api/api';
 import Icon from 'react-native-vector-icons/Ionicons';
 
-const LoginScreenEste = ({ navigation, onLogin }) => {
+const LoginScreenEste = ({ navigation }) => {
     const [nick, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [buttonScale] = useState(new Animated.Value(1));
-    const [loading, setLoading] = useState(false);
+    const [cargando, setCargando] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [confirmPassword, setConfirmPassword] = useState('');
 
-    const { login } = useUser();
+    const { login, loginAnonimo, setLoading } = useUser();
 
     const handlePressIn = () => {
         Animated.spring(buttonScale, {
@@ -59,20 +59,24 @@ const LoginScreenEste = ({ navigation, onLogin }) => {
                     text: 'Continuar',
                     onPress: async () => {
                         try {
-                            setLoading(true);
+                            setCargando(true);
                             const response = await api.post('/login-anonimo');
-
+                            // console.log(response.data)
+                            await AsyncStorage.removeItem('userData')
                             await AsyncStorage.setItem('userData', JSON.stringify({
                                 id: response.data.id,
                                 token: response.data.token,
+                                nick: response.data.nick,
+                                rol: response.data.rol,
                                 esAnonimo: true
                             }));
 
-                            navigation.replace('Inicio');
+                            loginAnonimo(response.data)
+                            navigation.navigate('Inicio');
                         } catch (error) {
                             Alert.alert('Error', error.response?.data?.message || 'Error al acceder');
                         } finally {
-                            setLoading(false);
+                            setCargando(false);
                         }
                     }
                 }
@@ -86,13 +90,13 @@ const LoginScreenEste = ({ navigation, onLogin }) => {
             return;
         }
 
-        setLoading(true);
+        setCargando(true);
 
         try {
             const response = await axios.post(`http://${Config.server}:${Config.puerto}/auth/login`,
                 { nick, password }, { timeout: 10000 }
             );
-            // console.log(response.data)
+            // console.log(response.data.user)
 
             if (response.data.success) {
                 // Guardar datos de usuario
@@ -101,9 +105,10 @@ const LoginScreenEste = ({ navigation, onLogin }) => {
                     id: response.data.user.id,
                     token: response.data.token,
                     nick: response.data.user.nick || null,
+                    rol: response.data.user.rol,
                     esAnonimo: false
                 };
-
+                
                 // Guarda en AsyncStorage
                 const jsonData = JSON.stringify(userDataToStore);
                 if (!jsonData) throw new Error('Error al serializar datos');
@@ -119,10 +124,12 @@ const LoginScreenEste = ({ navigation, onLogin }) => {
                     }));
                 }
                 // Actualizar contexto
-                onLogin() // Cambia el estado de logueo
+                // onLogin() // Cambia el estado de logueo
+                setLoading(true)
+                // console.log("entro")
                 login(response.data)
                 // Redirigir
-                navigation.replace('Inicio');
+                navigation.navigate('Inicio');
             } else {
                 Alert.alert('Error', response.data.message);
             }
@@ -138,7 +145,7 @@ const LoginScreenEste = ({ navigation, onLogin }) => {
                 Alert.alert('Error', 'Error inesperado');
             }
         } finally {
-            setLoading(false);
+            setCargando(false);
         }
     };
 
@@ -153,7 +160,7 @@ const LoginScreenEste = ({ navigation, onLogin }) => {
             >
                 <View style={styles.loginContainer}>
                     <Image
-                        source={require('../assets/LogoImperio.jpg')}
+                        source={require('../assets/LogoImperio.png')}
                         style={styles.logo}
                         resizeMode="contain"
                     />
@@ -170,7 +177,7 @@ const LoginScreenEste = ({ navigation, onLogin }) => {
                             onChangeText={setEmail}
                             keyboardType="email-address"
                             autoCapitalize="none"
-                            editable={!loading}
+                            editable={!cargando}
                         />
                     </View>
 
@@ -195,7 +202,7 @@ const LoginScreenEste = ({ navigation, onLogin }) => {
                             value={password}
                             onChangeText={setPassword}
                             secureTextEntry={!showConfirmPassword}
-                            editable={!loading}
+                            editable={!cargando}
                         />
                         <TouchableOpacity
                             style={styles.eyeIcon}
@@ -211,14 +218,14 @@ const LoginScreenEste = ({ navigation, onLogin }) => {
 
                     <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
                         <TouchableOpacity
-                            style={[styles.button, loading && styles.disabledButton]}
+                            style={[styles.button, cargando && styles.disabledButton]}
                             onPress={handleLogin}
                             onPressIn={handlePressIn}
                             onPressOut={handlePressOut}
-                            disabled={loading || !nick || !password}
+                            disabled={cargando || !nick || !password}
                             activeOpacity={0.7}
                         >
-                            {loading ? (
+                            {cargando ? (
                                 <ActivityIndicator color="#4c669f" />
                             ) : (
                                 <Text style={styles.buttonText}>Iniciar Sesión</Text>
@@ -227,7 +234,7 @@ const LoginScreenEste = ({ navigation, onLogin }) => {
                     </Animated.View>
 
                     <TouchableOpacity
-                        disabled={loading}
+                        disabled={cargando}
                         onPress={() => navigation.navigate('Registro')}
                     >
                         <Text style={styles.registerText}>
@@ -236,11 +243,11 @@ const LoginScreenEste = ({ navigation, onLogin }) => {
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                        disabled={loading}
+                        disabled={cargando}
                         onPress={handleAnonymousLogin}
                         style={{ marginTop: 15 }}
                     >
-                        {loading ? (
+                        {cargando ? (
                             <ActivityIndicator color="#FFF" />
                         ) : (
                             <Text style={styles.registerText}>Continuar como <Text style={styles.registerLink}>Invitado</Text></Text>

@@ -335,7 +335,7 @@ const EliminarProducto = ({ navigation, route }) => {
                 {/* Resultados */}
                 <FlatList
                     data={filteredData}
-                    keyExtractor={(item) => item.id.toString()}
+                    keyExtractor={(item, index) => `${item.id?.toString() || 'missing-id'}-${index}`}
                     renderItem={renderProducto}
                     ListEmptyComponent={
                         <Text style={styles.noResults}>No se encontraron resultados</Text>

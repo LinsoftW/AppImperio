@@ -1,5 +1,5 @@
 // En archivo config.js
 export const Config = {
-  server: '192.168.43.123',
+  server: '172.20.10.5',
   puerto: '5000',
 };

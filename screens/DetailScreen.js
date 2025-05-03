@@ -51,7 +51,7 @@ import api from '../api/api';
 const DetallesScreen = ({ route, navigation }) => {
     const { productoId, precio, stock, imag, descripcion, id, usuario, cantActual } = route.params;
 
-    const { user } = useUser();
+    const { user, logout } = useUser();
 
     // Estado para guardar las cantidades seleccionadas
     const [quantities, setQuantities] = useState({});
@@ -63,9 +63,31 @@ const DetallesScreen = ({ route, navigation }) => {
         }));
     };
 
+    const irRegistro = () => {
+        logout()
+        navigation.navigate('Registro')
+    }
+
+    const irLogin = () => {
+        logout()
+        navigation.navigate('Login')
+    }
     const ComprarAhora = (p) => {
-        const quantity = quantities[id] || 1;
-        navigation.navigate('Checkout1', { total: p * quantity, pagina: 'S' })
+        if (user?.esAnonimo) {
+            Alert.alert(
+                'Cuenta temporal',
+                'Para finalizar tu compra necesitas registrar una cuenta completa',
+                [
+                    { text: 'Registrarme', onPress: () => irRegistro() },
+                    { text: 'Iniciar sesión', onPress: () => irLogin() },
+                    { text: 'Más tarde', style: 'cancel' }
+                ]
+            );
+        } else {
+
+            const quantity = quantities[id] || 1;
+            navigation.navigate('Checkout1', { total: p * quantity, pagina: 'S' })
+        }
     }
 
     const addToCart = async (product) => {
@@ -126,6 +148,7 @@ const DetallesScreen = ({ route, navigation }) => {
                     'Para finalizar tu compra necesitas registrar una cuenta completa',
                     [
                         { text: 'Registrarme', onPress: () => navigation.navigate('Registro') },
+                        { text: 'Iniciar sesión', onPress: () => navigation.navigate('Login') },
                         { text: 'Más tarde', style: 'cancel' }
                     ]
                 );

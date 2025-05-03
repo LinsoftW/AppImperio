@@ -120,7 +120,7 @@ const VerificarPagosScreen = () => {
         <View style={styles.item}>
             <View style={styles.itemContent}>
                 <Text style={styles.itemText}>
-                    {item.attributes.estado === 'Enviado' ? '🟡' : '🟠'} {item.attributes.cantidad} de {item.attributes?.nombre_persona || 'Anónimo'}
+                    {item.attributes.estado === 'Enviado' ? '🟡' : '🟠'} $ {item.attributes.cantidad} de {item.attributes?.nombre_persona || 'Anónimo'}
                 </Text>
                 <Text style={styles.fechaText}>
                     {new Date(item.attributes.create_at).toLocaleString()}
@@ -162,7 +162,7 @@ const VerificarPagosScreen = () => {
             <FlatList
                 data={pagos}
                 renderItem={renderItem}
-                keyExtractor={item => item.id.toString()}
+                keyExtractor={(item, index) => `${item.id?.toString() || 'pago-id'}-${index}`}
                 contentContainerStyle={styles.list}
                 ListEmptyComponent={
                     <Text style={styles.emptyText}>No hay pagos pendientes</Text>

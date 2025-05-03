@@ -25,7 +25,7 @@ const HomeScreen = ({ navigation, route }) => {
     const [phoneNumber, setphoneNumber] = useState('');
     const [filteredData, setFilteredData] = useState([]);
 
-    const { user } = useUser();
+    const { user, logout } = useUser();
 
     const isFocused = useIsFocused();
 
@@ -37,6 +37,7 @@ const HomeScreen = ({ navigation, route }) => {
 
     const cargarProductos = async () => {
         setProductos([])
+        setFilteredData([])
         setLoading(true);
         try {
             const response = await fetch(`http://${Config.server}:${Config.puerto}/productos`);
@@ -89,6 +90,16 @@ const HomeScreen = ({ navigation, route }) => {
 
     }
 
+    const irRegistro = () => {
+        logout()
+        navigation.navigate('Registro')
+    }
+
+    const irLogin = () => {
+        logout()
+        navigation.navigate('Login')
+    }
+
     const addToCart = async (product) => {
         const quantity = quantities[product.id] || 1;
 
@@ -123,7 +134,7 @@ const HomeScreen = ({ navigation, route }) => {
                         },
                         {
                             text: 'Iniciar sesión',
-                            onPress: () => navigation.navigate('Login'),
+                            onPress: () => irLogin(),
                             style: 'cancel'
                         }
                     ]
@@ -148,7 +159,8 @@ const HomeScreen = ({ navigation, route }) => {
                     'Cuenta temporal',
                     'Para finalizar tu compra necesitas registrar una cuenta completa',
                     [
-                        { text: 'Registrarme', onPress: () => navigation.navigate('Registro') },
+                        { text: 'Registrarme', onPress: () => irRegistro() },
+                        { text: 'Iniciar sesión', onPress: () => irLogin() },
                         { text: 'Más tarde', style: 'cancel' }
                     ]
                 );
@@ -162,8 +174,9 @@ const HomeScreen = ({ navigation, route }) => {
                         'Acción requerida',
                         'Para agregar al carrito necesitas una cuenta completa',
                         [
-                            { text: 'Registrarme', onPress: () => navigation.navigate('Registro') },
-                            { text: 'Iniciar sesión', onPress: () => navigation.navigate('Login') }
+                            { text: 'Registrarme', onPress: () => irRegistro() },
+                            { text: 'Iniciar sesión', onPress: () => irLogin() },
+                            { text: 'Más tarde', style: 'cancel' }
                         ]
                     );
                 } else {
@@ -204,6 +217,7 @@ const HomeScreen = ({ navigation, route }) => {
     // Función para manejar el refresh
     const onRefresh = async () => {
         setProductos([])
+        setFilteredData([])
         setLoading(true);
         try {
             const response = await fetch(`http://${Config.server}:${Config.puerto}/productos`);
@@ -223,6 +237,7 @@ const HomeScreen = ({ navigation, route }) => {
         // Llamada a la API
         const fetchProductos = async () => {
             setProductos([])
+            setFilteredData([])
             setLoading(true);
             try {
                 const response = await fetch(`http://${Config.server}:${Config.puerto}/productos`);
@@ -275,9 +290,11 @@ const HomeScreen = ({ navigation, route }) => {
                 },
                 {
                     text: 'Salir',
-                    onPress: () => {
+                    onPress: async () => {
                         if (Platform.OS === 'android') {
                             BackHandler.exitApp();
+                            logout()
+                            navigator.navigate('Login')
                         } else {
                             // Alternativa para iOS (no cierra, pero muestra mensaje)
                             Alert.alert(
@@ -285,13 +302,51 @@ const HomeScreen = ({ navigation, route }) => {
                                 'Presiona el botón Home para salir',
                                 [{ text: 'OK' }]
                             );
+                            logout()
+                            navigator.navigate('Login')
                         }
+                        // await AsyncStorage.removeItem('userData');
+                        // logout()
                     },
                 },
             ]
         );
     };
 
+    // Abrir carrito
+    const AbreCarrito = () => {
+        // console.log(user)
+        if (user.esAnonimo == true) {
+            Alert.alert(
+                'Cuenta temporal',
+                'Para finalizar tu compra necesitas registrar una cuenta completa',
+                [
+                    { text: 'Registrarme', onPress: () => irRegistro() },
+                    { text: 'Iniciar sesión', onPress: () => irLogin() },
+                    { text: 'Más tarde', style: 'cancel' }
+                ]
+            );
+        } else {
+            navigation.navigate('Carrito')
+        }
+    }
+
+    const ComprarAhora = (t) => {
+        // console.log(user)
+        if (user.esAnonimo == true) {
+            Alert.alert(
+                'Cuenta temporal',
+                'Para finalizar tu compra necesitas registrar una cuenta completa',
+                [
+                    { text: 'Registrarme', onPress: () => irRegistro() },
+                    { text: 'Iniciar sesión', onPress: () => irLogin() },
+                    { text: 'Más tarde', style: 'cancel' }
+                ]
+            );
+        } else {
+            navigation.navigate('Checkout1', { total: t, pagina: 'S'})
+        }
+    }
     // Whatsapp
 
     const message = 'Hola, me interesa tu producto'; // Mensaje opcional
@@ -320,12 +375,13 @@ const HomeScreen = ({ navigation, route }) => {
     // Fin whatsapp
 
     const renderProducto = ({ item }) => (
-        <View style={styles.itemContainer}>
+        <View style={styles.itemContainer} key={`product-${item.id}`}>
             <Image source={{ uri: `http://${Config.server}:${Config.puerto}/${item.attributes.imagen}` }} style={styles.imagen} onPress={() => navigation.navigate('Detalles', { productoId: item.attributes.nombre, precio: item.attributes.precio, stock: item.attributes.cantidad, imag: item.attributes.imagen, descripcion: item.attributes.descripcion, id: item.id, usuario: user, cantActual: quantities[item.id] || 1 })} />
             <View style={styles.info}>
                 <Text style={styles.nombre} onPress={() => navigation.navigate('Detalles', { productoId: item.attributes.nombre, precio: item.attributes.precio, stock: item.attributes.cantidad, imag: item.attributes.imagen, descripcion: item.attributes.descripcion, id: item.id, usuario: user, cantActual: quantities[item.id] || 1 })}>{item.attributes.nombre}</Text>
                 <Text style={styles.precio}>$ {item.attributes.precio}</Text>
                 <QuantitySelector
+                    key={`qty-${item.id}`}
                     initialQuantity={quantities[item.id] || 1}
                     onQuantityChange={(qty) => handleQuantityChange(item.id, qty)}
                     maxQuantity={item.attributes.cantidad}
@@ -340,13 +396,13 @@ const HomeScreen = ({ navigation, route }) => {
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={styles.botonComprar}
-                        onPress={() => alert(`Producto agregado: ${item.attributes.nombre}`)}
+                        onPress={() => ComprarAhora(quantities[item.id] * item.attributes.precio)}
                     >
                         <Icon name="flash-outline" size={20} color="#FFF" style={styles.iconoCarrito} />
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={styles.botonDetalles}
-                        onPress={() => navigation.navigate('Detalles', { productoId: item.attributes.nombre, precio: item.attributes.precio, stock: item.attributes.cantidad, imag: item.attributes.imagen, descripcion: item.attributes.descripcion, id: item.id, usuario: user, cantActual: quantities[item.id] || 1})}
+                        onPress={() => navigation.navigate('Detalles', { productoId: item.attributes.nombre, precio: item.attributes.precio, stock: item.attributes.cantidad, imag: item.attributes.imagen, descripcion: item.attributes.descripcion, id: item.id, usuario: user, cantActual: quantities[item.id] || 1 })}
                     >
                         <Icon name="list" size={20} color="#000" style={styles.iconoCarrito} />
                     </TouchableOpacity>
@@ -398,7 +454,7 @@ const HomeScreen = ({ navigation, route }) => {
                 {/* Resultados */}
                 <FlatList
                     data={filteredData}
-                    keyExtractor={(item) => item.id.toString()}
+                    keyExtractor={(item, index) => `${item.id?.toString() || 'missing-id'}-${index}`}
                     renderItem={renderProducto}
                     ListEmptyComponent={
                         <Text style={styles.noResults}>No se encontraron resultados</Text>
@@ -418,7 +474,10 @@ const HomeScreen = ({ navigation, route }) => {
                     <Icon name="exit" size={20} color="#FFF" />
                     <Text style={styles.buttonText}> Salir</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.buyNowButton1} onPress={() => navigation.navigate('Carrito')}>
+                <TouchableOpacity style={styles.buyNowButton1}
+
+                    onPress={AbreCarrito}
+                >
                     {/* <FontAwesome name="whatsapp" size={20} color="#FFF" /> */}
                     <Icon name="cart-outline" size={20} color="#FFF" />
                     <Text style={styles.buttonText}> Mi carrito</Text>

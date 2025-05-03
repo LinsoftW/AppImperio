@@ -354,10 +354,10 @@ const EstadoPagoScreen = ({ route, navigation }) => {
                         <Text style={styles.entregaTitle}>Tu pedido está en camino</Text>
 
                         <View style={styles.repartidorInfo}>
-                            <Image
+                            {/* <Image
                                 source={require('../assets/card.png')} // Cambia por tu imagen de repartidor
                                 style={styles.repartidorImage}
-                            />
+                            /> */}
                             <View>
                                 <Text style={styles.repartidorText}>Repartidor: {repartidor.nombre}</Text>
                                 <Text style={styles.repartidorText}>Vehículo: {repartidor.vehiculo}</Text>
@@ -388,7 +388,7 @@ const EstadoPagoScreen = ({ route, navigation }) => {
                 onPress={() => {
                     if (estadoPago === 'Confirmado') {
                         ActualizaCarrito()
-                        navigation.navigate('Página prinicpal');
+                        navigation.navigate('MainDrawer');
                     } else {
                         // Opcional: Cancelar el pago
                         navigation.goBack();

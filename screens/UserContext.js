@@ -12,38 +12,58 @@ export const UserProvider = ({ children }) => {
       esAnonimo: false,
     }
   ); // { id: 1, nombre: "Ejemplo", email: "ejemplo@mail.com" }
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [server, setServer] = useState('172.20.10.5');
   const [puerto, setPuerto] = useState('5000');
   // const [colorPrimario, setColorPrimario] = useState('#4c669f');
-  const login = (userData) => {
-    // console.log(userData.token)
+  const login = async (userData) => {
     setUser({
       ...userData,          // Conserva todas las propiedades
       id: userData.user.id,
       token: userData.token,
       esAnonimo: false,
       nick: userData.user.nick || null,
+      rol: userData.user.rol
       // lastLogin: new Date()  // Puedes agregar más datos
     });
+    setLoading(true)
   };
 
-  const logout = () => {
+  const loginAnonimo = async (userData) => {
+    setUser({
+      ...userData,          // Conserva todas las propiedades
+      id: userData.id,
+      token: userData.token,
+      nick: userData.nick,
+      esAnonimo: userData.esAnonimo,
+      rol: 4
+      // lastLogin: new Date()  // Puedes agregar más datos
+    });
+  }
+
+  const logout = async () => {
+    // console.log("salio")
     setUser({
       id: null,
       token: null,
       esAnonimo: false,
       nick: null,
+      rol: 5
     });
+    setLoading(false)
+    await AsyncStorage.removeItem('userData');
   };
 
   useEffect(() => {
+
     const loadUser = async () => {
+      // setLoading(true)
       try {
         const userData = await AsyncStorage.getItem('userData');
         if (userData) {
           setUser(JSON.parse(userData));
         }
+        // setLoading(false);
       } catch (error) {
         console.error('Error loading user:', error);
       } finally {
@@ -56,9 +76,9 @@ export const UserProvider = ({ children }) => {
 
   return (
     <UserContext.Provider value={{
-      user, setUser,
+      user, setUser, setLoading, loading,
       server, setPuerto, setServer,
-      puerto, login, logout
+      puerto, login, logout, loginAnonimo
     }}>
       {children}
     </UserContext.Provider>

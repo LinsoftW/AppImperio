@@ -15,6 +15,7 @@ const CarritoScreen = ({ navigation }) => {
     const [total, setTotal] = useState(0);
 
     const cargarCarrito = async () => {
+        setCarrito([])
         try {
             setRefreshing(true);
             const response = await axios.get(
@@ -178,7 +179,7 @@ const CarritoScreen = ({ navigation }) => {
             <FlatList
                 data={carrito}
                 renderItem={renderItem}
-                keyExtractor={item => item.id.toString()}
+                keyExtractor={(item, index) => `${item.id?.toString() || 'missing-id'}-${index}`}
                 contentContainerStyle={styles.listContainer}
                 refreshing={refreshing}
                 onRefresh={cargarCarrito}

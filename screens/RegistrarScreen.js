@@ -24,7 +24,8 @@ export default function RegistroScreen({ navigation }) {
         direccion: '',
         email: '',
         password: '',
-        imagen_id: null
+        imagen_id: null,
+        idrol: null
     });
 
     const validatePassword = () => {
