@@ -52,6 +52,7 @@ const AdminScreen = () => (
         />
         <Stack.Screen name="Detalles" component={DetallesScreen} />
         <Stack.Screen name="Detalles de Ventas" component={DetalleVentaScreen} />
+        <Stack.Screen name="Carrito" component={CarritoScreen} options={{ headerShown: false, title: 'Mi carrito' }} />
         <Stack.Screen name="Editar" component={EditarProducto} />
         <Stack.Screen name="AgregarTarjeta" component={AgregarTarjetaScreen} />
         {/* <Stack.Screen name="MainDrawer" component={DrawerNavigator} options={{ headerShown: false, title: 'Inicio' }} /> */}

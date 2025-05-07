@@ -4,8 +4,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Config } from '../Config';
 
 const api = axios.create({
-  baseURL: `http://${Config.server}:${Config.puerto}`,
-  timeout: 10000,
+  baseURL: `http://${Config.server}`,
+  timeout: 30000,
 });
 
 // Interceptor para añadir token

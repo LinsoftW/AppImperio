@@ -176,7 +176,7 @@ const UserRoleManagementScreen = () => {
                 {/* Barra de búsqueda */}
                 <TextInput
                     style={styles.searchInput}
-                    placeholder="Buscar usuarios..."
+                    placeholder="Buscar por nombre o nick..."
                     value={searchQuery}
                     onChangeText={setSearchQuery}
                 />

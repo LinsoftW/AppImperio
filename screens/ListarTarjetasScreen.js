@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from 'react-native-vector-icons/Ionicons';
 import api from '../api/api';
@@ -23,6 +23,7 @@ const ListaTarjetasScreen = ({ navigation }) => {
         } finally {
             setLoading(false);
         }
+        setRefreshing(false)
     };
 
     useEffect(() => {
@@ -59,9 +60,55 @@ const ListaTarjetasScreen = ({ navigation }) => {
 
     // Renderizar cada tarjeta
     const renderItem = ({ item }) => (
+        // <View style={styles.containerI}>
+        //     {/* <TouchableOpacity
+        //         onPress={() => marcarPreferida(item.id)}
+        //         style={styles.preferidaButton}
+        //     >
+        //         <Text style={styles.preferidaText}>
+        //             {item.preferida === 'Preferida' ? 'Preferida' : 'Marcar como preferida'}
+        //         </Text>
+        //     </TouchableOpacity> */}
+        //     <TouchableOpacity
+        //         onPress={() => eliminarTarjeta(item.id)}
+        //         style={styles.eliminarButton}
+        //     >
+        //         <Icon name="trash-outline" style={styles.textOverlay1} size={20} color="#FF3B30" />
+        //     </TouchableOpacity>
+
+        //     {item.preferida === "Preferida" ? (
+        //         <>
+        //             <Image
+        //                 source={require('../assets/tarjeta1.png')}
+        //                 style={styles.cardImage}
+        //                 resizeMode="contain"
+        //             />
+        //             <Text style={styles.textOverlay}>{item.numero}</Text>
+        //         </>
+        //     ) :
+        //         <>
+        //             <Image
+        //                 source={require('../assets/tarjeta2.png')}
+        //                 style={styles.cardImage}
+        //                 resizeMode="contain"
+        //             />
+        //             {/* <Icon name="trash-outline" style={styles.textOverlay} size={20} color="#FF3B30" /> */}
+        //             <Text style={styles.textOverlay}>{item.numero}</Text>
+        //         </>
+        //     }
+        //      <TouchableOpacity
+        //         onPress={() => marcarPreferida(item.id)}
+        //         style={styles.preferidaButton}
+        //     >
+        //         <Text style={styles.preferidaText}>
+        //             {item.preferida === 'Preferida' ? 'Preferida' : 'Marcar como preferida'}
+        //         </Text>
+        //     </TouchableOpacity>
+
+        // </View>
         <View style={styles.itemContainer}>
             <View style={styles.itemHeader}>
-                <Text style={styles.numeroText}>•••• •••• •••• {item.numero.slice(-4)}</Text>
+                <Text style={styles.numeroText}>**** **** **** {item.numero.slice(-4)}</Text>
                 {item.preferida === 'Preferida' && (
                     <Icon name="star" size={20} color="#FFD700" />
                 )}
@@ -84,6 +131,22 @@ const ListaTarjetasScreen = ({ navigation }) => {
                     <Icon name="trash-outline" size={20} color="#FF3B30" />
                 </TouchableOpacity>
             </View>
+            {/* <View style={styles.containerI}>
+                <Image
+                    source={require('../assets/tarjeta1.png')}
+                    style={styles.cardImage}
+                    resizeMode="contain"
+                />
+                <Text style={styles.textOverlay}>{item.numero}</Text> 
+            </View>*/}
+            {/* <TouchableOpacity
+                onPress={() => marcarPreferida(item.id)}
+                style={styles.preferidaButton}
+            >
+                <Text style={styles.preferidaText}>
+                    {item.preferida === 'Preferida' ? 'Preferida' : 'Marcar como preferida'}
+                </Text>
+            </TouchableOpacity> */}
         </View>
     );
 
@@ -102,8 +165,8 @@ const ListaTarjetasScreen = ({ navigation }) => {
                     <RefreshControl
                         refreshing={refreshing}
                         onRefresh={onRefresh}
-                        colors={['#FFF']} // Color del spinner (opcional, solo Android)
-                        tintColor="#FFF" // Color del spinner (iOS)
+                        colors={['#000']} // Color del spinner (opcional, solo Android)
+                        tintColor="#000" // Color del spinner (iOS)
                     />
                 }
                 ListEmptyComponent={
@@ -125,6 +188,64 @@ const ListaTarjetasScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
+    textOverlay: {
+        position: 'absolute',
+        // bottom: 20,
+        left: 0,
+        right: 0,
+        top: 100,
+        marginTop: 10,
+        textAlign: 'center',
+        color: 'black',
+        fontSize: 20,
+        fontWeight: 'bold',
+        // textShadowColor: 'rgba(0, 0, 0, 0.75)',
+        textShadowOffset: { width: 1, height: 1 },
+        textShadowRadius: 5,
+        padding: 10,
+        // backgroundColor: 'rgba(0,0,0,0.3)',
+    },
+    textOverlay1: {
+        // position: 'absolute',
+        // bottom: 20,
+        // left: 0,
+        // right: 0,
+        top: 10,
+        // marginTop: 10,
+        // textAlign: 'center',
+        color: 'red',
+        fontSize: 20,
+        // fontWeight: 'bold',
+        // textShadowColor: 'rgba(0, 0, 0, 0.75)',
+        // textShadowOffset: { width: 1, height: 1 },
+        // textShadowRadius: 5,
+        // padding: 10,
+        // backgroundColor: 'rgba(0,0,0,0.3)',
+    },
+    cardImage: {
+        // width: '80%',
+        // height: 150,
+        // marginTop: 30,
+        marginBottom: 20,
+        width: '100%',
+        height: '100%',
+        resizeMode: 'cover',
+    },
+    containerI: {
+        position: 'relative',
+        width: 367,
+        height: 200,
+        top: 1,
+        // backgroundColor: '#FFF',
+        borderRadius: 10,
+        margin: 3,
+        padding: 10,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 2
+    },
     container: {
         flex: 1,
         backgroundColor: '#F5F5F5'
@@ -169,14 +290,18 @@ const styles = StyleSheet.create({
         marginTop: 10
     },
     preferidaButton: {
-        padding: 5
+        padding: 1,
+        // top: 10,
+        marginTop: -30
     },
     preferidaText: {
         color: '#4c669f',
         fontWeight: '500'
     },
     eliminarButton: {
-        padding: 5
+        padding: 5,
+        // left: 300,
+        top: 5
     },
     addButton: {
         position: 'absolute',

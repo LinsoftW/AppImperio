@@ -54,7 +54,7 @@ const LoginScreen2 = ({ navigation, onLogin }) => {
         setLoading(true)
         // console.log(Config.server)
         try {
-            const response = await axios.get(`http://${Config.server}:${Config.puerto}/usuarios/existe`, {
+            const response = await axios.get(`http://${Config.server}/usuarios/existe`, {
                 params: { email }
             });
             // const data = await response.json();

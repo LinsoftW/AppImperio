@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';// Image
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image, ScrollView, ActivityIndicator } from 'react-native';
+// import { Image } from 'react-native-compressor';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
 import axios from 'axios';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { Config } from '../Config';
 import api from '../api/api';
+import { resizeImage } from 'react-native-image-resizer';
 
 export default function RegistroScreen({ navigation }) {
     const [image, setImage] = useState(null);
@@ -37,6 +39,12 @@ export default function RegistroScreen({ navigation }) {
         return true;
     };
 
+    const checkImageSize = async (uri) => {
+        const stats = await RNFS.stat(uri);
+        const sizeInMB = stats.size / (1024 * 1024);
+        return sizeInMB > 5; // Retorna true si es mayor a 5MB
+    };
+
     // Llama a validatePassword cuando cambien los campos
     useEffect(() => {
         validatePassword();
@@ -54,7 +62,8 @@ export default function RegistroScreen({ navigation }) {
             }
 
             const result = await ImagePicker.launchImageLibraryAsync({
-                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                // mediaTypes: ImagePicker.MediaType.Images,
+                mediaTypes: 'Images',
                 allowsEditing: true,
                 aspect: [4, 3],
                 quality: 1,
@@ -75,8 +84,92 @@ export default function RegistroScreen({ navigation }) {
             return;
         }
 
+        // if (await checkImageSize(image)) {
+        //     Alert.alert('Imagen muy grande', 'Por favor selecciona una imagen menor a 5MB');
+        //     return;
+        // }
+
         setUploading(true);
 
+        // // 1. Obtener información de la imagen
+        // const { width, height } = await new Promise((resolve) => {
+        //     Image.getSize(image, (w, h) => resolve({ width: w, height: h }));
+        // });
+
+        // // 2. Decidir si comprimir basado en tamaño/resolución
+        // const shouldCompress = width > 1200 || height > 1200;
+
+        // let finalUri = image;
+        // if (shouldCompress) {
+        //     // Usar ImageEditor para compresión (built-in en React Native)
+        //     finalUri = await new Promise((resolve, reject) => {
+        //         ImageEditor.cropImage(
+        //             image,
+        //             {
+        //                 offset: { x: 0, y: 0 },
+        //                 size: { width, height },
+        //                 displaySize: { width: 800, height: 800 },
+        //                 resizeMode: 'contain',
+        //             },
+        //             (uri) => resolve(uri),
+        //             (error) => reject(error)
+        //         );
+        //     });
+        // }
+
+        // // 3. Crear FormData
+        // const formData = new FormData();
+        // formData.append('imagen', {
+        //     uri: finalUri,
+        //     name: `profile_${Date.now()}.jpg`,
+        //     type: 'image/jpeg',
+        // });
+
+        // const response = await fetch(image);
+        // const blob = await response.blob();
+
+        // // Reducir calidad directamente
+        // const formData = new FormData();
+        // formData.append('imagen', {
+        //     uri: image,
+        //     name: `profile_${Date.now()}.jpg`,
+        //     type: blob.type || 'image/jpeg', // Usar type del Blob o default
+        // });
+        // // 1. Optimizar la imagen
+        // const optimizedImage = await ImageResizer.createResizedImage(
+        //     image,          // Ruta de la imagen original
+        //     800,           // Ancho máximo
+        //     800,           // Alto máximo
+        //     'JPEG',        // Formato (JPEG o PNG)
+        //     80,            // Calidad (0-100)
+        //     0,             // Rotación
+        //     null,          // Ruta de salida (null para temporal)
+        //     false          // No mantener metadatos EXIF
+        // );
+        // const formData = new FormData();
+        // formData.append('imagen', {
+        //     uri: optimizedImage.uri,
+        //     name: `profile_${Date.now()}.jpg`,
+        //     type: 'image/jpeg',
+        // });
+
+        // Comprimir a WebP
+        // const result = await Image.compress(image, {
+        //     compressionMethod: 'auto',
+        //     maxWidth: 800,
+        //     maxHeight: 800,
+        //     quality: 0.8, // 80% calidad
+        //     output: 'webp' // Formato WebP
+        // });
+
+        // const formData = new FormData();
+        // formData.append('imagen', {
+        //     uri: result,
+        //     name: `optimized_${Date.now()}.webp`,
+        //     type: 'image/webp',
+        // });
+
+        // Imagen original al servidor
         const formData = new FormData();
         formData.append('imagen', {
             uri: image,
@@ -85,13 +178,13 @@ export default function RegistroScreen({ navigation }) {
         });
 
         try {
-            // const response = await axios.post(`http://${Config.server}:${Config.puerto}/upload`, formData, {
-            //     headers: {
-            //         'Content-Type': 'multipart/form-data',
-            //     },
-            //     timeout: 10000 // 10 segundos de timeout
-            // });
-            const response = await api.post(`/upload`, formData);
+            const response = await axios.post(`http://${Config.server}/upload`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+                timeout: 30000 // 30 segundos de timeout
+            });
+            // const response = await api.post(`/upload`, formData);
 
             setUserData({ ...userData, imagen_id: response.data.id });
             // return true
@@ -370,6 +463,7 @@ export default function RegistroScreen({ navigation }) {
                         value={userData.telefono}
                         onChangeText={(text) => handleChange('telefono', text)}
                         keyboardType="phone-pad"
+                        color="#000"
                         editable={!registering}
                     />
 
@@ -379,6 +473,7 @@ export default function RegistroScreen({ navigation }) {
                         value={userData.nick}
                         onChangeText={(text) => handleChange('nick', text)}
                         editable={!registering}
+                        color="#000"
                     />
 
                     <TextInput
@@ -563,6 +658,7 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         marginBottom: 15,
         fontSize: 16,
+        color: '#000'
     },
     inputPass: {
         width: '100%',

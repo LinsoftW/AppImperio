@@ -93,8 +93,12 @@ const LoginScreenEste = ({ navigation }) => {
         setCargando(true);
 
         try {
-            const response = await axios.post(`http://${Config.server}:${Config.puerto}/auth/login`,
-                { nick, password }, { timeout: 10000 }
+            // console.log(`http://${Config.server}/auth/login`)
+            // const response = await axios.post(`http://${Config.server}/auth/login`,
+            //     { nick, password }, { timeout: 10000 }
+            // );
+            const response = await axios.api(`/auth/login`,
+                { nick, password }
             );
             // console.log(response.data.user)
 

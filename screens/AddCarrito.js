@@ -4,6 +4,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import axios from 'axios';
 import { useUser } from '../context/UserContext';
 import { Config } from '../Config';
+import api from '../api/api';
 // import Config from 'react-native-config';
 
 const AddToCartButton = ({ productoId, cantidad = 1 }) => {
@@ -27,11 +28,18 @@ const AddToCartButton = ({ productoId, cantidad = 1 }) => {
         }
 
         try {
-            await axios.post(`http://${Config.server}:${Config.puerto}/carrito/agregar`, {
-                usuario_id: user.id,
-                producto_id: productoId,
-                cantidad: cantidad
-            });
+            // await axios.post(`http://${Config.server}/carrito/agregar`, {
+            //     usuario_id: user.id,
+            //     producto_id: productoId,
+            //     cantidad: cantidad
+            // });
+            await api.post(`http://${Config.server}/carrito/agregar`,
+                {
+                    usuario_id: user.id,
+                    producto_id: productoId,
+                    cantidad: cantidad
+                }
+            )
             Alert.alert('Éxito', 'Producto agregado al carrito');
         } catch (error) {
             Alert.alert('Error', error.response?.data?.error || 'Error al agregar al carrito');

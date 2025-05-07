@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -13,6 +13,23 @@ const VerificarPagosScreen = () => {
     const [loading, setLoading] = useState(true);
     const [modalVisible, setModalVisible] = useState(false);
     const [currentPago, setCurrentPago] = useState(null);
+    const intervalRef = useRef(null);
+    const inactivityTimerRef = useRef(null);
+    const isActiveRef = useRef(true);
+
+    // Wrap cargarPagos en useCallback para evitar recreación en cada render
+    // const cargarPagos = useCallback(async () => {
+    //     try {
+    //         setLoading(true);
+    //         const response = await api.get('/pagos/pendientes');
+    //         setPagos(response.data.data);
+    //     } catch (error) {
+    //         console.error(error);
+    //         Alert.alert('Error', 'No se pudieron cargar los pagos');
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // }, []);
 
     const handleConfirmRepartidor = async (repartidor) => {
         const { id } = currentPago;
@@ -89,30 +106,115 @@ const VerificarPagosScreen = () => {
 
     };
 
-    useEffect(() => {
-        cargarPagos();
-    }, []);
+    // useEffect(() => {
+    //     cargarPagos();
+    // }, []);
+    // useEffect(() => {
+    //     let isMounted = true;
+    //     let intervalId;
 
-    // const registrarVenta = async (idp, idpp, cant) => {
+    //     const fetchData = async () => {
+    //         if (isMounted) {
+    //             await cargarPagos();
+    //         }
+    //     };
+
+    //     // Cargar inmediatamente al montar
+    //     fetchData();
+
+    //     // Configurar intervalo
+    //     intervalId = setInterval(fetchData, 5000);
+
+    //     // Limpieza al desmontar
+    //     return () => {
+    //         isMounted = false;
+    //         clearInterval(intervalId);
+    //     };
+    // }, [cargarPagos]); // Dependencia de cargarPagos
+
+    // const cargarPagos = useCallback(async () => {
     //     try {
-    //         const response = await api.post('/controlventas', {
-    //             idpersona: idp,    // ID del usuario/cliente
-    //             idproducto: idpp,   // ID del producto
-    //             cantidad: cant        // Cantidad vendida
-    //         });
-
-    //         const ventaRegistrada = response.data.data.attributes;
-    //         console.log('Venta registrada:', {
-    //             producto: ventaRegistrada.producto_nombre,
-    //             precioUnitario: ventaRegistrada.producto_precio,
-    //             cantidad: ventaRegistrada.cantidad,
-    //             subtotal: ventaRegistrada.subtotal,
-    //             cliente: ventaRegistrada.persona_nombre,
-    //             telefono: ventaRegistrada.persona_telefono
-    //         });
-
+    //         setLoading(true);
+    //         const response = await api.get('/pagos/pendientes');
+    //         setPagos(response.data.data);
     //     } catch (error) {
-    //         console.error('Error al registrar venta:', error);
+    //         console.error(error);
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // }, []);
+
+    // const startInterval = useCallback(() => {
+    //     // Limpiar intervalos existentes
+    //     stopInterval();
+
+    //     // Iniciar nuevo intervalo
+    //     intervalRef.current = setInterval(() => {
+    //         if (isActiveRef.current) {
+    //             cargarPagos();
+    //         }
+    //     }, 5000);
+    // }, [cargarPagos]);
+
+    // const stopInterval = useCallback(() => {
+    //     if (intervalRef.current) {
+    //         clearInterval(intervalRef.current);
+    //         intervalRef.current = null;
+    //     }
+    // }, []);
+
+    // const handleUserActivity = useCallback(() => {
+    //     // Marcar que hay actividad
+    //     isActiveRef.current = false;
+    //     stopInterval();
+
+    //     // Cargar datos inmediatamente
+    //     cargarPagos();
+
+    //     // Configurar temporizador para reanudar intervalo
+    //     if (inactivityTimerRef.current) {
+    //         clearTimeout(inactivityTimerRef.current);
+    //     }
+
+    //     inactivityTimerRef.current = setTimeout(() => {
+    //         isActiveRef.current = true;
+    //         startInterval();
+    //     }, 15000); // 15 segundos de inactividad para reanudar
+    // }, [cargarPagos, startInterval, stopInterval]);
+
+    // useEffect(() => {
+    //     // Carga inicial
+    //     cargarPagos();
+    //     startInterval();
+
+    //     return () => {
+    //         stopInterval();
+    //         if (inactivityTimerRef.current) {
+    //             clearTimeout(inactivityTimerRef.current);
+    //         }
+    //     };
+    // }, [cargarPagos, startInterval, stopInterval]);
+
+    // const actualizarEstado = async (id, nuevoEstado, item) => {
+    //     handleUserActivity(); // Registrar actividad
+
+    //     try {
+    //         if (nuevoEstado === 'Confirmado') {
+    //             setCurrentPago({ id, item });
+    //             setModalVisible(true);
+    //         } else {
+    //             const response = await api.put(`/pagos/${id}`, {
+    //                 estado: nuevoEstado
+    //             });
+
+    //             if (response.data.success) {
+    //                 Alert.alert('Éxito', 'Estado actualizado');
+    //                 cargarPagos();
+    //             }
+    //         }
+    //     } catch (error) {
+    //         console.error(error);
+    //         Alert.alert('Error', 'Error de conexión');
     //     }
     // };
 
@@ -120,7 +222,7 @@ const VerificarPagosScreen = () => {
         <View style={styles.item}>
             <View style={styles.itemContent}>
                 <Text style={styles.itemText}>
-                    {item.attributes.estado === 'Enviado' ? '🟡' : '🟠'} $ {item.attributes.cantidad} de {item.attributes?.nombre_persona || 'Anónimo'}
+                    {item.attributes.estado === 'Enviado' ? '🟡' : '🟠'} ${item.attributes.cantidad}.00 de {item.attributes?.nombre_persona || 'Anónimo'}
                 </Text>
                 <Text style={styles.fechaText}>
                     {new Date(item.attributes.create_at).toLocaleString()}
@@ -132,6 +234,7 @@ const VerificarPagosScreen = () => {
                     styles.button,
                     item.attributes.estado === 'Procesando' && styles.buttonConfirmar
                 ]}
+                // onPressIn={handleUserActivity}
                 onPress={() => {
                     if (item.attributes.estado === 'Enviado') {
                         actualizarEstado(item.id, 'Procesando', item);

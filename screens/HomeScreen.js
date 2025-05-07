@@ -24,32 +24,83 @@ const HomeScreen = ({ navigation, route }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [phoneNumber, setphoneNumber] = useState('');
     const [filteredData, setFilteredData] = useState([]);
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+    const [totalProducts, setTotalProducts] = useState(0);
 
-    const { user, logout } = useUser();
+    const { user, logout, setUser } = useUser();
 
     const isFocused = useIsFocused();
 
     useEffect(() => {
+        // cargarProductos();
         if (isFocused || route.params?.refresh) {
-            cargarProductos();
+            cargarProductos(true);
         }
     }, [isFocused, route.params?.refresh]);
 
-    const cargarProductos = async () => {
+    // Cargar todos los productos
+    // const cargarProductos = async () => {
+    //     setProductos([])
+    //     setFilteredData([])
+    //     setLoading(true);
+    //     try {
+    //         const response = await fetch(`http://${Config.server}:${Config.puerto}/productos`);
+    //         const data = await response.json();
+    //         setProductos(data.datos); // Suponiendo que "data" contiene un array de productos
+    //         setFilteredData(data.datos);
+    //     } catch (error) {
+    //         Alert.alert('Error', 'Error al cargar productos.');
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
+
+    // Cargar los productos de 100 en 100
+    const cargarProductos = async (isRefreshing = false) => {
         setProductos([])
         setFilteredData([])
-        setLoading(true);
+        if (!isRefreshing && !hasMore) return;
+
+        const currentPage = isRefreshing ? 1 : page;
+
         try {
-            const response = await fetch(`http://${Config.server}:${Config.puerto}/productos`);
+            setLoading(true);
+            const response = await fetch(
+                `http://${Config.server}/productos?page=${currentPage}&limit=100`
+            );
             const data = await response.json();
-            // console.log(data.datos)
-            setProductos(data.datos); // Suponiendo que "data" contiene un array de productos
-            setFilteredData(data.datos);
+
+            if (isRefreshing) {
+                setProductos(data.datos);
+                setFilteredData(data.datos);
+            } else {
+                setProductos(prev => [...prev, ...data.datos]);
+                setFilteredData(prev => [...prev, ...data.datos]);
+            }
+
+            setTotalProducts(data.pagination.total);
+            setHasMore(currentPage < data.pagination.totalPages);
+            setPage(currentPage + 1);
         } catch (error) {
-            // console.error('Error al cargar productos:', error);
             Alert.alert('Error', 'Error al cargar productos.');
         } finally {
             setLoading(false);
+            setRefreshing(false);
+        }
+    };
+
+    const onRefresh = async () => {
+        setRefreshing(true);
+        setPage(1);
+        setHasMore(true);
+        await cargarProductos(true);
+    };
+
+    const MAX_PAGES = 5; // Máximo 1000 productos (10 páginas de 100)
+    const handleLoadMore = () => {
+        if (!loading && hasMore && page <= MAX_PAGES) {
+            cargarProductos(true);
         }
     };
 
@@ -62,33 +113,6 @@ const HomeScreen = ({ navigation, route }) => {
             [productId]: newQuantity
         }));
     };
-
-    // const addToCart = async (product) => {
-    //     const quantity = quantities[product.id] || 1;
-    //     const userId = user?.id || await AsyncStorage.getItem('userId');
-    //     // console.log(userId)
-
-    //     if (!userId) {
-    //         Alert.alert('Error', 'Debes iniciar sesión para agregar al carrito');
-    //         navigation.navigate('Login');
-    //         return;
-    //     }
-    //     try {
-    //         const response = await axios.post(`http://${Config.server}:${Config.puerto}/carrito/agregar`, {
-    //             idpersona: userId, // Asumiendo que tienes autenticación
-    //             idproducto: product.id,
-    //             cantidad: quantity,
-    //         });
-    //         Alert.alert('Éxito', 'Producto añadido al carrito');
-    //         // Resetear la cantidad después de añadir
-    //         setQuantities(prev => ({ ...prev, [product.id]: 1 }));
-    //     } catch (error) {
-    //         Alert.alert('Error', 'No se pudo añadir al carrito');
-    //     }
-    // };
-    const comprobarStock = () => {
-
-    }
 
     const irRegistro = () => {
         logout()
@@ -106,7 +130,7 @@ const HomeScreen = ({ navigation, route }) => {
         try {
             // 1. Verificar si hay usuario logueado
             // console.log(user.id)
-            const Estadostock = comprobarStock()
+            // const Estadostock = comprobarStock()
             let userId = user?.id;
             let token = user?.token;
 
@@ -140,6 +164,26 @@ const HomeScreen = ({ navigation, route }) => {
                     ]
                 );
                 return;
+            }
+
+            // verificar la cantidad en stock para si es mayor no realizar la operacion
+            const response1 = await api.get(`/productos`);
+            const response2 = await api.get(`/carrito`);
+            let cantCarrito = 0;
+            for (let index = 0; index < response2.data.datos.length; index++) {
+                if ((response2.data.datos[index].attributes.nick == user.nick) ) {
+                    cantCarrito = response2.data.datos[index].attributes.cantidad
+                    break
+                }
+            }
+            // Obtener la cantidad actual en stock
+            for (let index = 0; index < response1.data.datos.length; index++) {
+                if ((response1.data.datos[index].id == product.id) ) {
+                    if (cantCarrito >= response1.data.datos[index].attributes.cantidad) {
+                        Alert.alert('Error', `Solo hay disponible ` + response1.data.datos[index].attributes.cantidad + ` unidades.`);
+                        return
+                    }
+                }
             }
 
             // 3. Hacer la petición con el token
@@ -192,7 +236,7 @@ const HomeScreen = ({ navigation, route }) => {
     // Función auxiliar para registro anónimo
     const registerAnonymous = async () => {
         try {
-            const response = await axios.post(`http://${Config.server}:${Config.puerto}/usuarios/anonimo`);
+            const response = await axios.post(`http://${Config.server}/usuarios/anonimo`);
 
             // Guardar usuario anónimo en AsyncStorage
             await AsyncStorage.setItem('anonUser', JSON.stringify({
@@ -215,12 +259,12 @@ const HomeScreen = ({ navigation, route }) => {
     };
 
     // Función para manejar el refresh
-    const onRefresh = async () => {
+    const onRefresh1 = async () => {
         setProductos([])
         setFilteredData([])
         setLoading(true);
         try {
-            const response = await fetch(`http://${Config.server}:${Config.puerto}/productos`);
+            const response = await fetch(`http://${Config.server}/productos`);
             const data = await response.json();
             // console.log(data.datos)
             setProductos(data.datos); // Suponiendo que "data" contiene un array de productos
@@ -240,7 +284,7 @@ const HomeScreen = ({ navigation, route }) => {
             setFilteredData([])
             setLoading(true);
             try {
-                const response = await fetch(`http://${Config.server}:${Config.puerto}/productos`);
+                const response = await fetch(`http://${Config.server}/productos`);
                 const data = await response.json();
                 // console.log(data.datos)
                 setProductos(data.datos); // Suponiendo que "data" contiene un array de productos
@@ -253,7 +297,7 @@ const HomeScreen = ({ navigation, route }) => {
             }
             // Cargar el contacto de whatsapp para poder escribirle
             try {
-                const response1 = await fetch(`http://${Config.server}:${Config.puerto}/contactos`);
+                const response1 = await fetch(`http://${Config.server}/contactos`);
                 const data1 = await response1.json();
                 setphoneNumber(data1.datos[0].attributes.numero); // Reemplaza con el número en formato internacional (sin +)
             } catch (error) {
@@ -331,8 +375,8 @@ const HomeScreen = ({ navigation, route }) => {
         }
     }
 
-    const ComprarAhora = (t) => {
-        // console.log(user)
+    const ComprarAhora = (cant, costo) => {
+        const totalApagar = cant * costo;
         if (user.esAnonimo == true) {
             Alert.alert(
                 'Cuenta temporal',
@@ -344,12 +388,12 @@ const HomeScreen = ({ navigation, route }) => {
                 ]
             );
         } else {
-            navigation.navigate('Checkout1', { total: t, pagina: 'S'})
+            navigation.navigate('Checkout1', { total: totalApagar, pagina: 'S' })
         }
     }
     // Whatsapp
 
-    const message = 'Hola, me interesa tu producto'; // Mensaje opcional
+    const message = 'Hola, me interesa uno de tus producto'; // Mensaje opcional
 
     const openWhatsApp = async () => {
         // Formatea la URL para WhatsApp
@@ -376,9 +420,9 @@ const HomeScreen = ({ navigation, route }) => {
 
     const renderProducto = ({ item }) => (
         <View style={styles.itemContainer} key={`product-${item.id}`}>
-            <Image source={{ uri: `http://${Config.server}:${Config.puerto}/${item.attributes.imagen}` }} style={styles.imagen} onPress={() => navigation.navigate('Detalles', { productoId: item.attributes.nombre, precio: item.attributes.precio, stock: item.attributes.cantidad, imag: item.attributes.imagen, descripcion: item.attributes.descripcion, id: item.id, usuario: user, cantActual: quantities[item.id] || 1 })} />
+            <Image source={{ uri: `http://${Config.server}/${item.attributes.imagen}` }} style={styles.imagen} onPress={() => navigation.navigate('Detalles', { productoId: item.attributes.nombre, precio: item.attributes.precio, stock: item.attributes.cantidad, imag: item.attributes.imagen, descripcion: item.attributes.descripcion, id: item.id, usuario: user, cantActual: quantities[item.id] || 1, volumen: item.attributes.volumen, sexo: item.attributes.sexo, marca: item.attributes.marca })} />
             <View style={styles.info}>
-                <Text style={styles.nombre} onPress={() => navigation.navigate('Detalles', { productoId: item.attributes.nombre, precio: item.attributes.precio, stock: item.attributes.cantidad, imag: item.attributes.imagen, descripcion: item.attributes.descripcion, id: item.id, usuario: user, cantActual: quantities[item.id] || 1 })}>{item.attributes.nombre}</Text>
+                <Text style={styles.nombre} onPress={() => navigation.navigate('Detalles', { productoId: item.attributes.nombre, precio: item.attributes.precio, stock: item.attributes.cantidad, imag: item.attributes.imagen, descripcion: item.attributes.descripcion, id: item.id, usuario: user, cantActual: quantities[item.id] || 1, volumen: item.attributes.volumen, sexo: item.attributes.sexo, marca: item.attributes.marca })}>{item.attributes.nombre}</Text>
                 <Text style={styles.precio}>$ {item.attributes.precio}</Text>
                 <QuantitySelector
                     key={`qty-${item.id}`}
@@ -396,13 +440,14 @@ const HomeScreen = ({ navigation, route }) => {
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={styles.botonComprar}
-                        onPress={() => ComprarAhora(quantities[item.id] * item.attributes.precio)}
+                        onPress={() => ComprarAhora(quantities[item.id] || 1, item.attributes.precio)}
                     >
                         <Icon name="flash-outline" size={20} color="#FFF" style={styles.iconoCarrito} />
+                        {/* <Text> { quantities[item.id] || 1}</Text> */}
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={styles.botonDetalles}
-                        onPress={() => navigation.navigate('Detalles', { productoId: item.attributes.nombre, precio: item.attributes.precio, stock: item.attributes.cantidad, imag: item.attributes.imagen, descripcion: item.attributes.descripcion, id: item.id, usuario: user, cantActual: quantities[item.id] || 1 })}
+                        onPress={() => navigation.navigate('Detalles', { productoId: item.attributes.nombre, precio: item.attributes.precio, stock: item.attributes.cantidad, imag: item.attributes.imagen, descripcion: item.attributes.descripcion, id: item.id, usuario: user, cantActual: quantities[item.id] || 1, volumen: item.attributes.volumen, sexo: item.attributes.sexo, marca: item.attributes.marca })}
                     >
                         <Icon name="list" size={20} color="#000" style={styles.iconoCarrito} />
                     </TouchableOpacity>
@@ -456,17 +501,34 @@ const HomeScreen = ({ navigation, route }) => {
                     data={filteredData}
                     keyExtractor={(item, index) => `${item.id?.toString() || 'missing-id'}-${index}`}
                     renderItem={renderProducto}
-                    ListEmptyComponent={
-                        <Text style={styles.noResults}>No se encontraron resultados</Text>
+                    onEndReached={handleLoadMore}
+                    onEndReachedThreshold={0.5}
+                    ListFooterComponent={
+                        loading && !refreshing ? (
+                            <ActivityIndicator size="large" color="#FFF" />
+                        ) : !hasMore ? (
+                            <Text style={styles.noResults}>No hay más productos</Text>
+                        ) : null
                     }
                     refreshControl={
                         <RefreshControl
                             refreshing={refreshing}
                             onRefresh={onRefresh}
-                            colors={['#FFF']} // Color del spinner (opcional, solo Android)
-                            tintColor="#FFF" // Color del spinner (iOS)
+                            colors={['#FFF']}
+                            tintColor="#FFF"
                         />
                     }
+                // ListEmptyComponent={
+                //     <Text style={styles.noResults}>No se encontraron resultados</Text>
+                // }
+                // refreshControl={
+                //     <RefreshControl
+                //         refreshing={refreshing}
+                //         onRefresh={onRefresh}
+                //         colors={['#FFF']} // Color del spinner (opcional, solo Android)
+                //         tintColor="#FFF" // Color del spinner (iOS)
+                //     />
+                // }
                 />
             </View>
             <View style={styles.buttonContainer}>

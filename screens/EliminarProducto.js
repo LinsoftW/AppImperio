@@ -58,7 +58,7 @@ const EliminarProducto = ({ navigation, route }) => {
                             // const response = await axios.delete(`http://${Config.server}:${Config.puerto}/productos`, {
                             //     data: { confirm: 'true' },
                             // });
-                            const response1 = await fetch(`http://${Config.server}:${Config.puerto}/productos`);
+                            const response1 = await fetch(`http://${Config.server}/productos`);
                             const data = await response1.json();
                             if (data.datos == "") {
                                 Alert.alert(
@@ -97,7 +97,7 @@ const EliminarProducto = ({ navigation, route }) => {
         setLoading(true);
         setProductos([])
         try {
-            const response = await fetch(`http://${Config.server}:${Config.puerto}/productos`);
+            const response = await fetch(`http://${Config.server}/productos`);
             const data = await response.json();
             // console.log(data.datos)
             setProductos(data.datos); // Suponiendo que "data" contiene un array de productos
@@ -115,7 +115,7 @@ const EliminarProducto = ({ navigation, route }) => {
         setProductos([])
         setLoading(true);
         try {
-            const response = await fetch(`http://${Config.server}:${Config.puerto}/productos`);
+            const response = await fetch(`http://${Config.server}/productos`);
             const data = await response.json();
             // console.log(data)
             setProductos(data.datos); // Suponiendo que "data" contiene un array de productos
@@ -132,7 +132,7 @@ const EliminarProducto = ({ navigation, route }) => {
         setLoading(true);
         setProductos([])
         try {
-            const response = await fetch(`http://${Config.server}:${Config.puerto}/productos`);
+            const response = await fetch(`http://${Config.server}/productos`);
             const data = await response.json();
             // console.log(data.datos)
             setProductos(data.datos); // Suponiendo que "data" contiene un array de productos
@@ -264,7 +264,7 @@ const EliminarProducto = ({ navigation, route }) => {
 
     const renderProducto = ({ item }) => (
         <View style={styles.itemContainer}>
-            <Image source={{ uri: `http://${Config.server}:${Config.puerto}/${item.attributes.imagen}` }} style={styles.imagen} onPress={() => navigation.navigate('Detalles', { productoId: item.attributes.nombre, precio: item.attributes.precio, stock: item.attributes.cantidad, imag: item.attributes.imagen })} />
+            <Image source={{ uri: `http://${Config.server}/${item.attributes.imagen}` }} style={styles.imagen} onPress={() => navigation.navigate('Detalles', { productoId: item.attributes.nombre, precio: item.attributes.precio, stock: item.attributes.cantidad, imag: item.attributes.imagen })} />
             <View style={styles.info}>
                 <Text style={styles.nombre} onPress={() => navigation.navigate('Detalles', { productoId: item.attributes.nombre, precio: item.attributes.precio, stock: item.attributes.cantidad, imag: item.attributes.imagen })}>{item.attributes.nombre}</Text>
                 <Text style={styles.precio}>$ {item.attributes.precio}</Text>

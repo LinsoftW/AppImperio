@@ -36,8 +36,8 @@ export default function EditarProducto() {
                 imagen_id: producto.id,
                 descripcion: producto.attributes.descripcion
             });
-            setOriginalImage(`http://${Config.server}:${Config.puerto}/${producto.attributes.imagen}`);
-            setImage(`http://${Config.server}:${Config.puerto}/${producto.attributes.imagen}`);
+            setOriginalImage(`http://${Config.server}/${producto.attributes.imagen}`);
+            setImage(`http://${Config.server}/${producto.attributes.imagen}`);
         }
     }, [producto]);
 

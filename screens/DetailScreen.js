@@ -49,7 +49,7 @@ import axios from 'axios';
 import api from '../api/api';
 
 const DetallesScreen = ({ route, navigation }) => {
-    const { productoId, precio, stock, imag, descripcion, id, usuario, cantActual } = route.params;
+    const { productoId, precio, stock, imag, descripcion, id, usuario, cantActual, volumen, sexo, marca } = route.params;
 
     const { user, logout } = useUser();
 
@@ -130,6 +130,27 @@ const DetallesScreen = ({ route, navigation }) => {
                 );
                 return;
             }
+
+            // verificar la cantidad en stock para si es mayor no realizar la operacion
+            const response1 = await api.get(`/productos`);
+            const response2 = await api.get(`/carrito`);
+            let cantCarrito = 0;
+            for (let index = 0; index < response2.data.datos.length; index++) {
+                if ((response2.data.datos[index].attributes.nick == user.nick)) {
+                    cantCarrito = response2.data.datos[index].attributes.cantidad
+                    break
+                }
+            }
+            // Obtener la cantidad actual en stock
+            for (let index = 0; index < response1.data.datos.length; index++) {
+                if ((response1.data.datos[index].id == product.id)) {
+                    if (cantCarrito >= response1.data.datos[index].attributes.cantidad) {
+                        Alert.alert('Error', `Solo hay disponible ` + response1.data.datos[index].attributes.cantidad + ` unidades.`);
+                        return
+                    }
+                }
+            }
+
             // 3. Hacer la petición con el token
             const response = await api.post('/carrito/agregar', {
                 idpersona: userId,
@@ -217,7 +238,7 @@ const DetallesScreen = ({ route, navigation }) => {
 
                 <View style={styles.card}>
                     <Image
-                        source={{ uri: `http://${Config.server}:${Config.puerto}/${imag}` }}
+                        source={{ uri: `http://${Config.server}/${imag}` }}
                         style={styles.imagePlaceholder}
                         resizeMode="contain"
                     />
@@ -230,6 +251,19 @@ const DetallesScreen = ({ route, navigation }) => {
                             onQuantityChange={(qty) => handleQuantityChange({ id }.id, qty)}
                             maxQuantity={stock}
                         />
+                        <Text style={styles.sectionTitle}>Marca</Text>
+                        <Text style={styles.description}>
+                            {marca}
+                        </Text>
+                        <Text style={styles.sectionTitle}>Sexo</Text>
+                        <Text style={styles.description}>
+                            {sexo}
+                        </Text>
+                        <Text style={styles.sectionTitle}>Volumen</Text>
+                        <Text style={styles.description}>
+                            {volumen}
+                        </Text>
+
                         <View style={styles.separator} />
                         <Text style={styles.sectionTitle}>Descripción</Text>
                         <Text style={styles.description}>

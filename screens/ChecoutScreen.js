@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, Alert, Linking } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -8,8 +8,36 @@ import { useUser } from './UserContext';
 const CheckoutScreen1 = ({ navigation, route }) => {
     const { total, pagina } = route.params;
     const [seleccionado, setSeleccionado] = useState(0); // 0 = nada, 1 = PayPal, 2 = Tarjeta
+    const [tarjetas, setTarjetas] = useState([]);
 
     const { user } = useUser();
+
+    const cargarTarjetas = async () => {
+        try {
+            // setLoading(true);
+            const response = await api.get('/tarjetas');
+            for (let index = 0; index < response.data.data.length; index++) {
+                if (response.data.data[index].preferida === 'Preferida') {
+                   const tarj = response.data.data[index].numero
+                   setTarjetas(tarj);
+                   break
+                }
+            }
+            //   console.log(response.data.data)
+            // setTarjetas(tarj);
+        } catch (error) {
+            console.error('Error:', error);
+            Alert.alert('Error', 'No se pudieron cargar las tarjetas');
+        } finally {
+            // setLoading(false);
+            // console.log(tarjetas)
+        }
+        // setRefreshing(false)
+    };
+
+    useEffect(() => {
+        cargarTarjetas();
+    }, []);
 
     const enzona = async () => {
         // primero verificar si esta instalada la apk y sino abrir la web si tiene
@@ -21,6 +49,23 @@ const CheckoutScreen1 = ({ navigation, route }) => {
         // }
         // console.log(iSEnzonaInstalda)
         const url = 'https://identity.enzona.net/authenticationendpoint/login.do?client_id=ofr3Wz9nnfZaFd18OewdZYvuTaEa&commonAuthCallerPath=%2Foauth2%2Fauthorize&forceAuth=false&passiveAuth=false&redirect_uri=https%3A%2F%2Fwww.enzona.net%2Fauth%2Fenzona%2Fcallback&response_type=code&scope=openid&state=8ErbQIPelljf2xEWhqfRQCNDsvbL7Mjx308Lukyc&tenantDomain=carbon.super&sessionDataKey=769171b9-3a8d-496a-84e1-9c12b071a8dd&relyingParty=ofr3Wz9nnfZaFd18OewdZYvuTaEa&type=oidc&sp=admin_ppago-apk_PRODUCTION&isSaaSApp=false&authenticators=IdentifierExecutor:LOCAL'; // Reemplaza con tu URL de PayPal
+        try {
+            await Linking.openURL(url);
+        } catch (error) {
+            console.error('Error al abrir Enzona:', error);
+        }
+    };
+
+    const transfermovil = async () => {
+        // primero verificar si esta instalada la apk y sino abrir la web si tiene
+        const iSEnzonaInstalda = checkAppInstalled('transfermovil://')
+        try {
+            await Linking.openURL('transfermovil://');
+        } catch (error) {
+            Alert.alert('Error', 'Transfermovil no está instalado');
+        }
+        console.log(iSEnzonaInstalda)
+        // const url = 'https://identity.enzona.net/authenticationendpoint/login.do?client_id=ofr3Wz9nnfZaFd18OewdZYvuTaEa&commonAuthCallerPath=%2Foauth2%2Fauthorize&forceAuth=false&passiveAuth=false&redirect_uri=https%3A%2F%2Fwww.enzona.net%2Fauth%2Fenzona%2Fcallback&response_type=code&scope=openid&state=8ErbQIPelljf2xEWhqfRQCNDsvbL7Mjx308Lukyc&tenantDomain=carbon.super&sessionDataKey=769171b9-3a8d-496a-84e1-9c12b071a8dd&relyingParty=ofr3Wz9nnfZaFd18OewdZYvuTaEa&type=oidc&sp=admin_ppago-apk_PRODUCTION&isSaaSApp=false&authenticators=IdentifierExecutor:LOCAL'; // Reemplaza con tu URL de PayPal
         try {
             await Linking.openURL(url);
         } catch (error) {
@@ -43,23 +88,7 @@ const CheckoutScreen1 = ({ navigation, route }) => {
         }
     };
 
-    const enviarPagoSimple = async () => {
-        try {
-            const response = await api.post(`/pagosS`, {
-                idpersona: user.id,
-                cantidad: parseFloat(total)
-            });
-            const idPagoGenerado = response.data.data.id
-            Alert.alert('Éxito', 'Pago enviado para verificación');
-            navigation.navigate('EstadoPago', { pagoId: idPagoGenerado });
-        } catch (error) {
-            Alert.alert('Error', 'No se pudo enviar el pago');
-            console.error(error);
-        }
-    };
-
     const handlePago = async () => {
-        // console.log(pagina)
         if (seleccionado === 0) {
             Alert.alert('Error', 'Selecciona un método de pago');
             return;
@@ -77,18 +106,23 @@ const CheckoutScreen1 = ({ navigation, route }) => {
         }
         if (seleccionado === 2) {
             // Abrir PayPal
-            Alert.alert('Aviso', 'Ha seleccionado pagar por transfermovil');
+            transfermovil()
+            enviarPago()
+            // Alert.alert('Aviso', 'Ha seleccionado pagar por transfermovil');
         }
     };
 
     return (
         <LinearGradient colors={['#4c669f', '#3b5998', '#192f6a']} style={styles.container}>
             {/* Imagen de tarjeta */}
-            <Image
-                source={require('../assets/tarjeta.png')}
-                style={styles.cardImage}
-                resizeMode="contain"
-            />
+            <View style={styles.containerI}>
+                <Image
+                    source={require('../assets/tarjeta1.png')}
+                    style={styles.cardImage}
+                    resizeMode="contain"
+                />
+                <Text style={styles.textOverlay}>{tarjetas}</Text>
+            </View>
 
             {/* Monto a pagar */}
             <View style={styles.amountContainer}>
@@ -145,16 +179,41 @@ const CheckoutScreen1 = ({ navigation, route }) => {
 
 // Estilos (basados en tu diseño anterior con mejoras)
 const styles = StyleSheet.create({
+    textOverlay: {
+        position: 'absolute',
+        // bottom: 20,
+        left: 0,
+        right: 0,
+        top: 80,
+        marginTop:10,
+        textAlign: 'center',
+        color: 'black',
+        fontSize: 20,
+        fontWeight: 'bold',
+        // textShadowColor: 'rgba(0, 0, 0, 0.75)',
+        textShadowOffset: { width: 1, height: 1 },
+        textShadowRadius: 5,
+        padding: 10,
+        // backgroundColor: 'rgba(0,0,0,0.3)',
+    },
     container: {
         flex: 1,
         padding: 20,
         alignItems: 'center',
     },
+    containerI: {
+        position: 'relative',
+        width: 300,
+        height: 200,
+    },
     cardImage: {
-        width: '80%',
-        height: 150,
-        marginTop: 30,
+        // width: '80%',
+        // height: 150,
+        // marginTop: 30,
         marginBottom: 20,
+        width: '100%',
+        height: '100%',
+        resizeMode: 'cover',
     },
     amountContainer: {
         backgroundColor: 'rgba(255, 255, 255, 0.1)',

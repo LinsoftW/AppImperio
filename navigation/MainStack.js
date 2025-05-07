@@ -40,6 +40,7 @@ const MainStack = () => (
         />
          <Stack.Screen name="Detalles" component={DetallesScreen} />
          {/* <Stack.Screen name="Inicio" component={HomeScreen} /> */}
+         {/* <Stack.Screen name="Carrito" component={CarritoScreen} options={{ headerShown: false, title: 'Mi carrito' }} /> */}
         {/* <Stack.Screen name="MainDrawer" component={DrawerNavigator} options={{ headerShown: false, title: 'Inicio' }} /> */}
         <Stack.Screen name="Checkout1" component={CheckoutScreen1} options={{ headerShown: false, title: 'Pago' }} />
         <Stack.Screen name="EstadoPago" component={EstadoPagoScreen} options={{ headerShown: false, title: 'Estado del pago' }} />

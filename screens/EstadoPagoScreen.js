@@ -229,6 +229,7 @@ const EstadoPagoScreen = ({ route, navigation }) => {
     const { params } = route || {};
     const { pagoId, pag } = params || {};
     const [intervalId, setIntervalId] = useState(null);
+    const [verificaTodos, setVerificarTodos] = useState("");
     const intervalRef = useRef(null);
 
     // Verifica inmediatamente si recibiste el ID
@@ -243,6 +244,9 @@ const EstadoPagoScreen = ({ route, navigation }) => {
 
     // Estados del pago
     const [estadoPago, setEstadoPago] = useState('Enviado');
+    // const [estadoPagos, setEstadoPagos] = useState([
+    //     esta = 'Enviado'
+    // ]);
     const [repartidor, setRepartidor] = useState(null);
     const [tiempoEstimado, setTiempoEstimado] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -256,35 +260,99 @@ const EstadoPagoScreen = ({ route, navigation }) => {
 
     // Función para verificar el estado del pago
     const verificarEstadoPago = async () => {
-        // console.log(pag)
+        // console.log(pagoId)
+        // if(!pagoId) {console.log("Indefiidp")}
         try {
-            const response = await api.get(`/pagos/${pagoId}`);
-            // console.log(response.data.data[0])
-            if (response.data.data[0] !== undefined) {
-                const pago = response.data.data[0].attributes;
-                // console.log(pago)
-                if (pago.estado !== estadoPago) {
-                    setEstadoPago(pago.estado);
+            if (!pagoId) {
+                const response = await api.get(`/pagosP/${user.id}`);
+                // console.log(response.data.data.length)
+                if (response.data.data.length > 1) {
+                    setVerificarTodos("1")
+                    // console.log("Por aquiiii")
+                    // if (response.data.data !== undefined) {
+                    // const pago = response.data.data;
+                    // console.log(pago)
+                    // const dato = pago.map(p => {
+                    //     console.log(p.attributes.estado)
+                    //     if (p.attributes.estado) {
+                    //         setEstadoPagos(
+                    //             ...estadoPagos,
+                    //             [esta = p.attributes.estado]
+                    //         );
 
-                    // Detener el intervalo si el estado es "Confirmado"
-                    if (pago.estado === 'Confirmado') {
-                        if (intervalId) {
-                            clearInterval(intervalId);
-                            setIntervalId(null);
-                        }
+                    //         // Detener el intervalo si el estado es "Confirmado"
+                    //         if (p.attributes.estado === 'Confirmado') {
+                    //             if (intervalId) {
+                    //                 clearInterval(intervalId);
+                    //                 setIntervalId(null);
+                    //             }
 
-                        // Cargar datos del repartidor
+                    //             setRepartidor({
+                    //                 nombre: p.attributes.mensajero || 'Carlos Gómez',
+                    //                 telefono: p.attributes.telefono || '+5300000000',
+                    //                 vehiculo: p.attributes.vehiculo || 'Moto - ABC123',
+                    //             });
+                    //             setTiempoEstimado(p.attributes.tiempo || '30-45 minutos');
+                    //         }
+                    //     }
+                    // })
+                    // }
+                } else {
+                    setVerificarTodos("2")
+                    if (response.data.data[0] !== undefined) {
+                        const pago = response.data.data[0].attributes;
                         // console.log(pago)
-                        setRepartidor({
-                            nombre: pago.mensajero || 'Carlos Gómez',
-                            telefono: pago.telefono || '+5300000000',
-                            vehiculo: pago.vehiculo || 'Moto - ABC123',
-                        });
-                        setTiempoEstimado(pago.tiempo || '30-45 minutos');
+                        if (pago.estado !== estadoPago) {
+                            setEstadoPago(pago.estado);
+
+                            // Detener el intervalo si el estado es "Confirmado"
+                            if (pago.estado === 'Confirmado') {
+                                if (intervalId) {
+                                    clearInterval(intervalId);
+                                    setIntervalId(null);
+                                }
+
+                                // Cargar datos del repartidor
+                                // console.log(pago)
+                                setRepartidor({
+                                    nombre: pago.mensajero || 'Carlos Gómez',
+                                    telefono: pago.telefono || '+5300000000',
+                                    vehiculo: pago.vehiculo || 'Moto - ABC123',
+                                });
+                                setTiempoEstimado(pago.tiempo || '30-45 minutos');
+                            }
+                        }
+                    }
+                }
+            } else {
+                setVerificarTodos("2")
+                const response = await api.get(`/pagos/${pagoId}`);
+                if (response.data.data[0] !== undefined) {
+                    const pago = response.data.data[0].attributes;
+                    // console.log(pago)
+                    if (pago.estado !== estadoPago) {
+                        setEstadoPago(pago.estado);
+
+                        // Detener el intervalo si el estado es "Confirmado"
+                        if (pago.estado === 'Confirmado') {
+                            if (intervalId) {
+                                clearInterval(intervalId);
+                                setIntervalId(null);
+                            }
+
+                            // Cargar datos del repartidor
+                            // console.log(pago)
+                            setRepartidor({
+                                nombre: pago.mensajero || 'Carlos Gómez',
+                                telefono: pago.telefono || '+5300000000',
+                                vehiculo: pago.vehiculo || 'Moto - ABC123',
+                            });
+                            setTiempoEstimado(pago.tiempo || '30-45 minutos');
+                        }
                     }
                 }
             }
-
+            // console.log(verificaTodos)
             // Verificar si el estado realmente cambió antes de actualizar el estado local
         } catch (error) {
             console.error('Error al verificar estado:', error);
@@ -324,21 +392,34 @@ const EstadoPagoScreen = ({ route, navigation }) => {
             <View style={styles.card}>
                 {/* Icono animado según estado */}
                 {/* ('Enviado', 'Procesando' */}
-                {estadoPago === 'Enviado' || estadoPago === 'Procesando' ? (
-                    <>
-                        <ActivityIndicator size="large" color="#4CAF50" style={styles.icon} />
-                        <Text style={styles.mensaje}>
-                            {estadoPago === 'Pendiente'
-                                ? 'Estamos validando tu pago...'
-                                : 'El administrador está verificando tu pago'}
-                        </Text>
-                    </>
-                ) : (
-                    <>
-                        <Icon name="checkmark-circle" size={80} color="#4CAF50" style={styles.icon} />
-                        <Text style={styles.mensaje}>¡Pago confirmado exitosamente!</Text>
-                    </>
-                )}
+                {verificaTodos === "1"
+                    ? (
+                        <>
+                            <Icon name="checkmark-circle" size={80} color="#4CAF50" style={styles.icon} />
+                            <Text style={styles.mensaje}>No tiene envíos pendientes</Text>
+                        </>
+                    ) : (
+                        <>
+                            {/* <Text>Uno {estadoPagos}</Text> */}
+                            {/* <Text style={styles.mensaje}>{ verificaTodos }</Text> */}
+                            {estadoPago === 'Enviado' || estadoPago === 'Procesando' ? (
+                                <>
+                                    <ActivityIndicator size="large" color="#4CAF50" style={styles.icon} />
+                                    <Text style={styles.mensaje}>
+                                        {estadoPago === 'Pendiente'
+                                            ? 'Estamos validando tu pago...'
+                                            : 'El administrador está verificando tu pago'}
+                                    </Text>
+                                </>
+                            ) : (
+                                <>
+                                    <Icon name="checkmark-circle" size={80} color="#4CAF50" style={styles.icon} />
+                                    <Text style={styles.mensaje}>¡Pago confirmado exitosamente!</Text>
+                                </>
+                            )}
+                        </>
+                    )
+                }
 
                 {/* Estado actual */}
                 <Text style={[
@@ -349,7 +430,7 @@ const EstadoPagoScreen = ({ route, navigation }) => {
                 </Text>
 
                 {/* Detalles de entrega (solo cuando está confirmado) */}
-                {estadoPago === 'Confirmado' && repartidor && (
+                {estadoPago === 'Confirmado' && verificaTodos === "2" && repartidor && (
                     <View style={styles.entregaContainer}>
                         <Text style={styles.entregaTitle}>Tu pedido está en camino</Text>
 
@@ -396,7 +477,7 @@ const EstadoPagoScreen = ({ route, navigation }) => {
                 }}
             >
                 <Text style={styles.actionButtonText}>
-                    {estadoPago === 'Confirmado' ? 'Aceptar' : 'Cancelar pedido'}
+                    {estadoPago === 'Confirmado' && verificaTodos === "2" ? 'Aceptar' : 'Cancelar pedido'}
                 </Text>
             </TouchableOpacity>
         </LinearGradient>

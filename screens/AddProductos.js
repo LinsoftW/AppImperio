@@ -251,6 +251,7 @@ export default function AddProductos() {
             //         'Content-Type': 'multipart/form-data',
             //     },
             // }, { timeout: 10000 });
+            // console.log("entro")
             const imageResponse = await api.post(`/upload`, formData);
 
             // Luego crear el producto con la imagen_id

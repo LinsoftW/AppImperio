@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, Platform, Alert } from 'react-native';
+import { Modal, View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, Platform, Alert, TextInput } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from 'react-native-vector-icons/Ionicons';
 import api from '../api/api';
@@ -9,6 +9,8 @@ import { Picker } from '@react-native-picker/picker';
 const ReporteVentasScreen = ({ navigation }) => {
     const [ventas, setVentas] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [filteredData, setFilteredData] = useState([]);
     const [fechaInicio, setFechaInicio] = useState(() => {
         const date = new Date();
         date.setDate(date.getDate() - 7);
@@ -218,6 +220,8 @@ const ReporteVentasScreen = ({ navigation }) => {
     );
     // Cargar datos de ventas
     const cargarVentas = async () => {
+        setVentas([])
+        setFilteredData([])
         try {
             setLoading(true);
             const response = await api.get('/reporte-ventas', {
@@ -229,6 +233,7 @@ const ReporteVentasScreen = ({ navigation }) => {
 
             if (response.data && response.data.data) {
                 setVentas(response.data.data);
+                setFilteredData(response.data.data)
                 setTotalVentas(response.data.total || 0);
             } else {
                 throw new Error('Formato de respuesta inesperado');
@@ -244,6 +249,20 @@ const ReporteVentasScreen = ({ navigation }) => {
     useEffect(() => {
         cargarVentas();
     }, [fechaInicio, fechaFin]);
+
+    // Filtrado de datos
+    useEffect(() => {
+        if (searchQuery.trim() === '') {
+            setFilteredData(ventas);
+            // console.log(ventas[6])
+        } else {
+            const filtered = ventas.filter(item =>
+                item.cliente.toLowerCase().includes(searchQuery.toLowerCase())
+                // || item.cantidad.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+            setFilteredData(filtered);
+        }
+    }, [searchQuery, ventas]);
 
     // Formatear fecha para mostrar
     const formatFecha = (date) => {
@@ -275,6 +294,7 @@ const ReporteVentasScreen = ({ navigation }) => {
     // Renderizar encabezado con controles de fecha
     const renderHeader = () => (
         <LinearGradient colors={['#4c669f', '#3b5998']} style={styles.headerContainer}>
+            
             <View style={styles.dateControls}>
                 <TouchableOpacity
                     style={styles.dateButton}
@@ -302,6 +322,24 @@ const ReporteVentasScreen = ({ navigation }) => {
             <View style={styles.totalContainer}>
                 <Text style={styles.totalText}>Total: ${totalVentas.toFixed(2)}</Text>
             </View>
+            <View style={styles.searchContainer}>
+                <Icon name="search" size={30} color="#000" style={styles.searchIcon} />
+                {/* <Ionicons name="search" size={20} color="#888" style={styles.searchIcon} /> */}
+                <TextInput
+                    style={styles.searchInput}
+                    placeholder="Buscar persona..."
+                    placeholderTextColor="#888"
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                />
+                {searchQuery !== '' && (
+                    <TouchableOpacity onPress={() => setSearchQuery('')}>
+                        <Icon name="close" size={20} color="#888" />
+                    </TouchableOpacity>
+                )}
+            </View>
         </LinearGradient>
     );
 
@@ -314,11 +352,13 @@ const ReporteVentasScreen = ({ navigation }) => {
     }
 
     return (
+
         <View style={styles.container}>
+            
             <FlatList
-                data={ventas}
+                data={filteredData}
                 renderItem={renderItem}
-                keyExtractor={item => item.id.toString()}
+                keyExtractor={(item, index) => `${item.id?.toString() || 'reporte-id'}-${index}`}
                 ListHeaderComponent={renderHeader}
                 contentContainerStyle={ventas.length === 0 ? styles.emptyList : null}
                 ListEmptyComponent={
@@ -330,16 +370,35 @@ const ReporteVentasScreen = ({ navigation }) => {
             />
 
             {renderDateModal()}
+            
         </View>
     );
 };
 
 // Estilos optimizados para ambos sistemas
 const styles = StyleSheet.create({
+    searchContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#f5f5f5',
+        borderRadius: 10,
+        paddingHorizontal: 15,
+        paddingVertical: 8,
+        marginBottom: 1,
+    },
+    searchIcon: {
+        marginRight: 10,
+    },
+    searchInput: {
+        flex: 1,
+        fontSize: 16,
+        color: '#333',
+    },
     modalContainer: {
         flex: 1,
         justifyContent: 'flex-end',
-        backgroundColor: 'rgba(0,0,0,0.5)'
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        padding: 10
     },
     modalContent: {
         backgroundColor: 'white',
@@ -383,7 +442,8 @@ const styles = StyleSheet.create({
     dateControls: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginBottom: 15
+        marginBottom: 15,
+        top: 10
     },
     dateButton: {
         flexDirection: 'row',
@@ -399,7 +459,8 @@ const styles = StyleSheet.create({
         fontSize: 14
     },
     totalContainer: {
-        alignItems: 'center'
+        alignItems: 'center',
+        padding: 10
     },
     totalText: {
         color: '#FFF',

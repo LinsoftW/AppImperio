@@ -34,7 +34,6 @@ export default function RootNavigator() {
     //   if (loading) {
     //     return <LoadingScreen />; // Muestra spinner mientras verifica autenticación
     //   }
-// console.log(user?.rol)
     switch (user?.rol) {
         case 1:
             return <AdminScreen />;

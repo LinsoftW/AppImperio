@@ -10,22 +10,56 @@ import api from '../api/api';
 const CarritoScreen = ({ navigation }) => {
     const { user } = useUser();
     const [carrito, setCarrito] = useState([]);
+    // const [ids, setIDs] = useState([]);
+    const [producto, setProducto] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [total, setTotal] = useState(0);
+    let ids = []
 
     const cargarCarrito = async () => {
         setCarrito([])
         try {
             setRefreshing(true);
-            const response = await axios.get(
-                `http://${Config.server}:${Config.puerto}/carrito/usuario/${user.id}`
-            );
-
-            if (response.data.success) {
-                setCarrito(response.data.data);
-                setTotal(response.data.total);
+            // const response = await axios.get(
+            //     `http://${Config.server}/carrito/usuario/${user.id}`
+            // );
+            // Cargo el carrito del usuario
+            // Cargar los productos y verificar si estan eliminados o si no tienen ya en stock, si es asi se los elimino al usuario del carrito
+            // // Obtener la cantidad actual en stock
+            // const response1 = await api.get(`/productos`);
+            // setProducto(response1.data.datos)
+            // console.log(producto[0].id)
+            // const response = await api.get(`/carrito/usuario/${user.id}`)
+            // setCarrito([])
+            // console.log(response.data.data[0].attributes.producto_id)
+            // let tot = 0;
+            // for (let index = 0; index < producto.length; index++) {
+            //     for (let j = 0; j < response.data.data.length; j++) {
+            //         if (producto[index].id == response.data.data[j].attributes.producto_id) {
+            //             // eliminarItem(producto[index].id)
+            //             // await api.delete(`/carrito/${producto[index].id}`);
+            //             console.log("elimina el ID", producto[index].id)
+            //             // setIDs(producto[index].id)
+            //             ids.push(producto[index].id)
+            //             // console.log("esta")
+            //             // carrito.push(response.data.data[j])
+            //             // tot = tot + response.data.data[j].attributes.subtotal
+            //             // setNewCarrito([])
+            //         }
+            //     }
+            // }
+            // console.log(ids.length)
+            // await api.delete(`/carrito/${ids}`);
+            // setCarrito(carrito)
+            // setTotal(tot)
+            // setTotal(carrito.total.toFixed())
+            const response2 = await api.get(`/carrito/usuario/${user.id}`)
+            if (response2.data.success) {
+                setCarrito(response2.data.data);
+                setTotal(response2.data.total);
             }
+            // console.log(carrito)
         } catch (error) {
             Alert.alert('Error', 'No se pudo cargar el carrito');
             console.error('Error:', error.response?.data || error.message);
@@ -70,20 +104,35 @@ const CarritoScreen = ({ navigation }) => {
                         'Stock insuficiente',
                         `Solo hay ${response.data.stockDisponible} unidades disponibles`
                     );
-                    return;
-                }
-                // Actualizar el estado local si es necesario
-                setCarrito(prev => prev.map(item =>
-                    item.id === itemId
-                        ? {
-                            ...item,
-                            attributes: {
-                                ...item.attributes,
-                                cantidad: nuevaCantidad
+                    const response = await api.put(`/carrito/${itemId}`, {
+                        cantidad: response.data.stockDisponible
+                    });
+                    setCarrito(prev => prev.map(item =>
+                        item.id === itemId
+                            ? {
+                                ...item,
+                                attributes: {
+                                    ...item.attributes,
+                                    cantidad: response.data.stockDisponible
+                                }
                             }
-                        }
-                        : item
-                ));
+                            : item
+                    ));
+                    return;
+                } else {
+                    // Actualizar el estado local si es necesario
+                    setCarrito(prev => prev.map(item =>
+                        item.id === itemId
+                            ? {
+                                ...item,
+                                attributes: {
+                                    ...item.attributes,
+                                    cantidad: nuevaCantidad
+                                }
+                            }
+                            : item
+                    ));
+                }
             } else {
                 Alert.alert('Error', response.data.error || 'No se pudo actualizar');
                 cargarCarrito(); // Recargar datos actuales
@@ -96,6 +145,20 @@ const CarritoScreen = ({ navigation }) => {
                     'Stock insuficiente',
                     `Solo hay ${error.response.data.stockDisponible} unidades disponibles`
                 );
+                const response = await api.put(`/carrito/${itemId}`, {
+                    cantidad: error.response.data.stockDisponible
+                });
+                setCarrito(prev => prev.map(item =>
+                    item.id === itemId
+                        ? {
+                            ...item,
+                            attributes: {
+                                ...item.attributes,
+                                cantidad: error.response.data.stockDisponible
+                            }
+                        }
+                        : item
+                ));
             } else {
                 Alert.alert('Error', 'No se pudo actualizar la cantidad');
             }
@@ -115,6 +178,24 @@ const CarritoScreen = ({ navigation }) => {
             console.error('Error eliminando item:', error);
         }
     };
+
+    const verificarPago = async () => {
+        const response1 = await api.get(`/productos`);
+        setProducto(response1.data.datos)
+        // console.log(producto)
+        const response = await api.get(`/carrito/usuario/${user.id}`)
+        // setCarrito([])
+        // console.log(response.data.data)
+        let tot = total;
+        for (let index = 0; index < producto.length; index++) {
+            for (let j = 0; j < response.data.data.length; j++) {
+                if (producto[index].id != response.data.data[j].attributes.producto_id) {
+                    tot = tot - (response.data.data[j].attributes.cantidad * response.data.data[j].attributes.precio)
+                }
+            }
+        }
+        navigation.navigate('Checkout1', { total: tot, pagina: 'M' })
+    }
 
     const renderItem = ({ item }) => (
         <View style={styles.itemContainer}>
@@ -214,7 +295,7 @@ const CarritoScreen = ({ navigation }) => {
 
                     <TouchableOpacity
                         style={styles.pagarButton}
-                        onPress={() => navigation.navigate('Checkout1', { total: total, pagina: 'M'})}
+                        onPress={() => verificarPago()}
                     >
                         <Text style={styles.pagarButtonText}>Proceder al pago</Text>
                         <Icon name="arrow-forward" size={20} color="#FFF" />
@@ -229,6 +310,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 16,
+        paddingTop: 35
     },
     listContainer: {
         paddingBottom: 200,
