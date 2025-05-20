@@ -1,0 +1,39 @@
+{
+  "expo": {
+    "name": "appImperio",
+    "slug": "appImperio",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/LogoImperio.png",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/LogoImperio.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "Permite acceder a tu galería para subir imágenes.",
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "bundleIdentifier": "com.anonymous.appImperio"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.anonymous.appImperio"
+    },
+    "web": {
+      "favicon": "./assets/LogoImperio.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "54e755af-9237-40a2-b5df-f2c979c20e29"
+      }
+    },
+    "owner": "naruto9312"
+  }
+}

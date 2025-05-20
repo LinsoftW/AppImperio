@@ -1,0 +1,20 @@
+# Archivos de build de Android (no necesarios para EAS)
+android/app/build/
+android/.gradle/
+android/gradle/
+android/local-maven-repo/
+android/gradlew*
+android/local.properties
+android/gradle.properties
+
+# Caché de Android Studio
+.idea/
+*.iml
+
+# Caché de Github
+*.git/
+
+# Otros archivos innecesarios
+node_modules/
+.expo/
+dist/
