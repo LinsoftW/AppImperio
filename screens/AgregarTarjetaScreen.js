@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -61,7 +61,7 @@ const AgregarTarjetaScreen = ({ navigation, route }) => {
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={['#4c669f', '#3b5998']} style={styles.header}>
+      <LinearGradient colors={["#1a3a8f", "#2a4a9f", "#3b5998"]} style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Icon name="arrow-back" size={24} color="#FFF" />
         </TouchableOpacity>
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: 20,
-    paddingTop: 40,
+    paddingTop: 20,
     flexDirection: 'row',
     alignItems: 'center'
   },
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
     color: '#333'
   },
   saveButton: {
-    backgroundColor: '#4c669f',
+    backgroundColor: '#FF6B00',
     borderRadius: 8,
     padding: 15,
     alignItems: 'center',

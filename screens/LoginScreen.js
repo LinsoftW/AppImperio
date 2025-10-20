@@ -1,424 +1,468 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from "react";
 import {
-    View,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    StyleSheet,
-    Image,
-    Animated,
-    KeyboardAvoidingView,
-    Platform,
-    ActivityIndicator,
-    Alert,
-} from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { LinearGradient } from 'expo-linear-gradient';
-import { FontAwesome } from '@expo/vector-icons';
-import axios from 'axios';
-import { useUser, setUser } from './UserContext';
-import { Config } from '../Config';
-import api from '../api/api';
-import Icon from 'react-native-vector-icons/Ionicons';
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+  Animated,
+  KeyboardAvoidingView,
+  Platform,
+  ActivityIndicator,
+  Alert,
+} from "react-native";
+import { SafeAreaView } from 'react-native-safe-area-context';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons, FontAwesome } from "@expo/vector-icons";
+import api from "../api/api";
+import axios from "axios";
+import { useUser } from "./UserContext";
+import * as SplashScreen from "expo-splash-screen";
+import Constants from "expo-constants";
+import { Asset } from "expo-asset";
+// import Geolocation from '@react-native-community/geolocation';
+
+// 1. Evita que SplashScreen se oculte automáticamente
+// SplashScreen.preventAutoHideAsync();
 
 const LoginScreenEste = ({ navigation }) => {
-    const [nick, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [buttonScale] = useState(new Animated.Value(1));
-    const [cargando, setCargando] = useState(false);
-    const [showPassword, setShowPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const [confirmPassword, setConfirmPassword] = useState('');
+  const [nick, setEmail] = useState("");
+  // const [telefono, setTelefono] = useState("");
+  const [password, setPassword] = useState("");
+  const [buttonScale] = useState(new Animated.Value(1));
+  const [cargando, setCargando] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [appIsReady, setAppIsReady] = useState(false);
 
-    const { login, loginAnonimo, setLoading } = useUser();
+  const { login, loginAnonimo, setLoading } = useUser();
+  const { server } = Constants.expoConfig?.extra;
 
-    const handlePressIn = () => {
-        Animated.spring(buttonScale, {
-            toValue: 0.95,
-            useNativeDriver: true,
-        }).start();
-    };
+  useEffect(() => {
+    const img = Asset.loadAsync(require("../assets/IconoSolo.png"));
+  }, []);
 
-    const handlePressOut = () => {
-        Animated.spring(buttonScale, {
-            toValue: 1,
-            useNativeDriver: true,
-        }).start();
-    };
+  const getLocationByIP = async (telefono) => {
+  try {
+    const response = await fetch("https://ipapi.co/json/");
+    const data = await response.json();
+    // console.log("TT "+ telefono)
+    const response1 = await api.post('/repartidor/ubicacion', { latitud: data.latitude, longitud: data.longitude, telefono: telefono });
+    // console.log("Ubicación aproximada:", data.city, data.country);
+    // console.log("Coordenadas:", data.latitude, data.longitude);
+  } catch (error) {
+    console.error("Error al obtener ubicación por IP:", error);
+  }
+};
 
-    // const handleAnonymousLogin = async () => {
-    //     Alert.alert(
-    //         'Acceso como invitado',
-    //         '¿Desea continuar sin una cuenta? Tendrá acceso limitado',
-    //         [
-    //             {
-    //                 text: 'Cancelar',
-    //                 style: 'cancel'
-    //             },
-    //             {
-    //                 text: 'Continuar',
-    //                 onPress: async () => {
-    //                     try {
-    //                         setCargando(true);
-    //                         // console.log('Entro')
-    //                         const response = await axios.post(`http://${Config.server}/login-anonimo`);
-    //                         // console.log(response.data)
-    //                         await AsyncStorage.removeItem('userData')
-    //                         await AsyncStorage.setItem('userData', JSON.stringify({
-    //                             id: response.data.id,
-    //                             token: response.data.token,
-    //                             nick: response.data.nick,
-    //                             rol: response.data.rol,
-    //                             esAnonimo: true
-    //                         }));
+  // 2. Carga todos los recursos necesarios
+  useEffect(() => {
+    async function prepare() {
+      try {
+        // Simula la carga de recursos (remplaza con tus cargas reales)
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      } catch (e) {
+        console.warn(e);
+      } finally {
+        // Indica que la aplicación está lista
+        setAppIsReady(true);
+      }
+    }
 
-    //                         loginAnonimo(response.data)
-    //                         navigation.navigate('Inicio');
-    //                     } catch (error) {
-    //                         Alert.alert('Error', error.response?.data?.message || 'Error al acceder');
-    //                     } finally {
-    //                         setCargando(false);
-    //                     }
-    //                 }
-    //             }
-    //         ]
-    //     );
-    // };
+    prepare();
+  }, []);
 
-    const handleAnonymousLogin = async () => {
-        Alert.alert(
-            'Acceso como invitado',
-            '¿Desea continuar sin una cuenta? Tendrá acceso limitado',
-            [
-                {
-                    text: 'Cancelar',
-                    style: 'cancel'
-                },
-                {
-                    text: 'Continuar',
-                    onPress: async () => {
-                        try {
-                            setCargando(true);
-                            // console.log("Entrooo")
-                            // 1. Petición al backend
-                            const response = await api.post('/login-anonimo');
+  // 3. Oculta el SplashScreen cuando todo esté listo
+  useEffect(() => {
+    if (appIsReady) {
+      SplashScreen.hideAsync();
+    }
+    
+  }, [appIsReady]);
 
-                            // 2. Validar estructura de respuesta
-                            if (!response.data?.token || !response.data?.id) {
-                                throw new Error('Datos de sesión inválidos');
-                            }
 
-                            // 3. Guardar en AsyncStorage
-                            const userData = {
-                                id: response.data.id,
-                                token: response.data.token,
-                                nick: response.data.nick || 'Invitado',
-                                rol: response.data.rol || 'invitado',
-                                esAnonimo: true
-                            };
 
-                            await AsyncStorage.multiRemove(['userData']); // Limpiar primero
-                            await AsyncStorage.setItem('userData', JSON.stringify(userData));
+  const handleAnonymousLogin = async () => {
+    Alert.alert(
+      "Acceso como invitado",
+      "¿Desea continuar sin una cuenta? Tendrá acceso limitado",
+      [
+        {
+          text: "Cancelar",
+          style: "cancel",
+        },
+        {
+          text: "Continuar",
+          onPress: async () => {
+            try {
+              setCargando(true);
+              // 1. Petición al backend
+              const response = await api.post("/login-anonimo");
 
-                            // 4. Actualizar estado y navegar
-                            if (loginAnonimo) loginAnonimo(userData);
-                            if (navigation) navigation.navigate('Inicio');
+              // 2. Validar estructura de respuesta
+              if (!response.data?.token || !response.data?.id) {
+                throw new Error("Datos de sesión inválidos");
+              }
 
-                        } catch (error) {
-                            console.error('Error en login anónimo:', error);
-                            const errorMessage = error.response?.data?.message
-                                || error.message
-                                || 'Error desconocido';
-                            Alert.alert('Error', errorMessage);
-                        } finally {
-                            setCargando(false);
-                        }
-                    }
-                }
-            ]
-        );
-    };
+              // 3. Guardar en AsyncStorage
+              const userData = {
+                id: response.data.id,
+                token: response.data.token,
+                nick: response.data.nick || "Invitado",
+                rol: response.data.rol || "invitado",
+                esAnonimo: true,
+              };
 
-    const handleLogin = async () => {
-        if (!nick || !password) {
-            Alert.alert('Error', 'Por favor completa todos los campos');
-            return;
-        }
+              await AsyncStorage.multiRemove(["userData"]); // Limpiar primero
+              await AsyncStorage.setItem("userData", JSON.stringify(userData));
 
-        setCargando(true);
-
-        try {
-            // console.log(`http://${Config.server}/auth/login`)
-            // const response = await axios.post(`http://${Config.server}/auth/login`,
-            //     { nick, password }, { timeout: 10000 }
-            // );
-            // const response = await axios.api(`/auth/login`,
-            //     { nick, password }
-            // );
-            // console.log(`http://${Config.server}/auth/login`)
-            const response = await axios.post(`http://${Config.server}/auth/login`, { nick, password });
-            // console.log(response.data)
-            // console.log("entro")
-
-            if (response.data.success) {
-                // Guardar datos de usuario
-                // Prepara los datos para AsyncStorage
-                const userDataToStore = {
-                    id: response.data.user.id,
-                    token: response.data.token,
-                    nick: response.data.user.nick || null,
-                    rol: response.data.user.rol,
-                    esAnonimo: false
-                };
-
-                // Guarda en AsyncStorage
-                const jsonData = JSON.stringify(userDataToStore);
-                if (!jsonData) throw new Error('Error al serializar datos');
-                try {
-                    const jsonValue = JSON.stringify(userDataToStore);
-                    await AsyncStorage.setItem('userData', jsonValue);
-                } catch (e) {
-                    console.error('Falló el guardado en AsyncStorage:', e);
-                    // Opcional: Guardar datos mínimos esenciales
-                    await AsyncStorage.setItem('userData_fallback', JSON.stringify({
-                        id: userDataToStore.id,
-                        token: userDataToStore.token
-                    }));
-                }
-                // Actualizar contexto
-                // onLogin() // Cambia el estado de logueo
-                setLoading(true)
-                // console.log("entro")
-                login(response.data)
-                // Redirigir
-                navigation.navigate('Inicio');
-            } else {
-                Alert.alert('Error', response.data.message);
+              // 4. Actualizar estado y navegar
+              if (loginAnonimo) loginAnonimo(userData);
+              if (navigation) navigation.navigate("Inicio");
+            } catch (error) {
+              console.error("Error en login anónimo:", error);
+              const errorMessage =
+                error.response?.data?.message ||
+                error.message ||
+                "Error desconocido";
+              Alert.alert("Error", errorMessage);
+            } finally {
+              setCargando(false);
             }
-        } catch (error) {
-            if (error.response) {
-                // Error del servidor (4xx, 5xx)
-                Alert.alert('Error', error.response.data.message || 'Credenciales incorrectas.');
-            } else if (error.request) {
-                // No se recibió respuesta
-                Alert.alert('Error', 'No se pudo conectar al servidor');
-            } else {
-                // Error en la configuración de la petición
-                Alert.alert('Error', 'Error inesperado');
-            }
-        } finally {
-            setCargando(false);
-        }
-    };
-
-    return (
-        <LinearGradient
-            colors={['#4c669f', '#3b5998', '#192f6a']}
-            style={styles.container}
-        >
-            <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                style={styles.container}
-            >
-                <View style={styles.loginContainer}>
-                    <Image
-                        source={require('../assets/LogoImperio.png')}
-                        style={styles.logo}
-                        resizeMode="contain"
-                    />
-
-                    <Text style={styles.title}>Bienvenido</Text>
-
-                    <View style={styles.inputContainer}>
-                        <FontAwesome name="user" size={20} color="#fff" style={styles.icon} />
-                        <TextInput
-                            placeholder="Nick o teléfono"
-                            placeholderTextColor="#aaa"
-                            style={styles.input}
-                            value={nick}
-                            onChangeText={setEmail}
-                            keyboardType="email-address"
-                            autoCapitalize="none"
-                            editable={!cargando}
-                        />
-                    </View>
-
-                    {/* <View style={styles.inputContainer}>
-                        <FontAwesome name="lock" size={20} color="#fff" style={styles.icon} />
-                        <TextInput
-                            placeholder="Contraseña"
-                            placeholderTextColor="#aaa"
-                            style={styles.input}
-                            value={password}
-                            onChangeText={setPassword}
-                            secureTextEntry
-                            editable={!loading}
-                        />
-                    </View> */}
-                    <View style={styles.inputContainer}>
-                        <FontAwesome name="lock" size={20} color="#fff" style={styles.icon} />
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Contraseña *"
-                            placeholderTextColor="#aaa"
-                            value={password}
-                            onChangeText={setPassword}
-                            secureTextEntry={!showConfirmPassword}
-                            editable={!cargando}
-                        />
-                        <TouchableOpacity
-                            style={styles.eyeIcon}
-                            onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                        >
-                            <Icon
-                                name={showConfirmPassword ? "eye-off" : "eye"}
-                                size={24}
-                                color="#999"
-                            />
-                        </TouchableOpacity>
-                    </View>
-
-                    <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
-                        <TouchableOpacity
-                            style={[styles.button, cargando && styles.disabledButton]}
-                            onPress={handleLogin}
-                            onPressIn={handlePressIn}
-                            onPressOut={handlePressOut}
-                            disabled={cargando || !nick || !password}
-                            activeOpacity={0.7}
-                        >
-                            {cargando ? (
-                                <ActivityIndicator color="#4c669f" />
-                            ) : (
-                                <Text style={styles.buttonText}>Iniciar Sesión</Text>
-                            )}
-                        </TouchableOpacity>
-                    </Animated.View>
-
-                    <TouchableOpacity
-                        disabled={cargando}
-                        onPress={() => navigation.navigate('Registro')}
-                    >
-                        <Text style={styles.registerText}>
-                            ¿No tienes cuenta? <Text style={styles.registerLink}>Regístrate</Text>
-                        </Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                        disabled={cargando}
-                        onPress={handleAnonymousLogin}
-                        style={{ marginTop: 15 }}
-                    >
-                        {cargando ? (
-                            <ActivityIndicator color="#FFF" />
-                        ) : (
-                            <Text style={styles.registerText}>Continuar como <Text style={styles.registerLink}>Invitado</Text></Text>
-                        )}
-                        {/* <Text style={styles.registerText}>
-                            Continuar como <Text style={styles.registerLink}>Invitado</Text>
-                        </Text> */}
-                    </TouchableOpacity>
-                    {/* <TouchableOpacity
-                        style={styles.registerText}
-                        onPress={handleAnonymousLogin}
-                        disabled={loading}
-                    >
-                        {loading ? (
-                            <ActivityIndicator color="#FFF" />
-                        ) : (
-                            <Text style={styles.registerText}>Entrar como invitado</Text>
-                        )}
-                    </TouchableOpacity> */}
-                </View>
-            </KeyboardAvoidingView>
-        </LinearGradient>
+          },
+        },
+      ]
     );
+  };
+
+  const handleLogin = async () => {
+    // console.log("Entrooooo")
+    //  console.log("🔸 Iniciando login...");
+    if (!nick || !password) {
+      Alert.alert("Error", "Por favor completa todos los campos");
+      return;
+    }
+
+    setCargando(true);
+    // console.log(server)
+    // / VERIFICAR: ¿De dónde viene 'server'?
+  // console.log("🔸 Server URL:", `http://${server}/auth/login`);
+  // console.log("🔸 Datos:", { nick, password });
+
+    try {
+      const response = await axios.post(`http://${server}/auth/login`, {
+        nick,
+        password,
+      });
+
+      // console.log(response.data)
+
+      // console.log("🔸 Respuesta del servidor:", response.data);
+      // console.log("Llegooooo")
+      if (response.data) {
+        // console.log("🔸 Login exitoso");
+        // setTelefono(response.data.user.telefono)
+        // console.log("Es mensajero? " + response.data.user.telefono)
+        // if (response.data.user.esMensajero === 1){
+        //   getLocationByIP(response.data.user.telefono)
+        // }
+        //  Los ejecutarnos
+        const userDataToStore = {
+          id: response.data.user.id,
+          token: response.data.token,
+          nick: response.data.user.nick || null,
+          rol: response.data.user.rol,
+          telefono: response.data.user.telefono || null,
+          esmensajero: response.data.user.esMensajero || 0,
+          esAnonimo: false,
+        };
+
+        // Guarda en AsyncStorage
+        const jsonData = JSON.stringify(userDataToStore);
+        if (!jsonData) throw new Error("Error al serializar datos");
+        try {
+          const jsonValue = JSON.stringify(userDataToStore);
+          await AsyncStorage.setItem("userData", jsonValue);
+        } catch (e) {
+          console.error("Falló el guardado en AsyncStorage:", e);
+          // Opcional: Guardar datos mínimos esenciales
+          await AsyncStorage.setItem(
+            "userData_fallback",
+            JSON.stringify({
+              id: userDataToStore.id,
+              token: userDataToStore.token,
+            })
+          );
+        }
+        // Actualizar contexto
+        // onLogin() // Cambia el estado de logueo
+        setLoading(true);
+        login(response.data);
+        // Redirigir
+        // console.log("Es mensajero? " + response.data.user.esMensajero)
+        navigation.replace("Inicio");
+      } else {
+        // console.log("🔸 Login fallido - respuesta no exitosa");
+        Alert.alert("Error", "❌ Usuario o contraseña incorrectas.");
+      }
+    } catch (error) {
+      if (error.response) {
+    //      console.error("🔸 Error completo:", error);
+    // console.log("🔸 Error response:", error.response);
+    // console.log("🔸 Error request:", error.request);
+        Alert.alert("Error", "❌ Usuario o contraseña incorrectas.");
+      } else if (error.request) {
+        // console.log("🔸 No hay respuesta del servidor");
+        // No se recibió respuesta
+        Alert.alert("Error", "❌ No se pudo conectar al servidor.");
+      } else {
+        //  console.log("🔸 Error de configuración:", error.message);
+        // Error en la configuración de la petición
+        Alert.alert("Error", "Error inesperado");
+      }
+    } finally {
+      //  console.log("🔸 Finalizando carga...");
+      setCargando(false);
+    }
+  };
+
+  // Animaciones
+  const handlePressIn = useCallback(() => {
+    Animated.spring(buttonScale, {
+      toValue: 0.95,
+      useNativeDriver: true,
+    }).start();
+  }, [buttonScale]);
+
+  const handlePressOut = useCallback(() => {
+    Animated.spring(buttonScale, {
+      toValue: 1,
+      useNativeDriver: true,
+    }).start();
+  }, [buttonScale]);
+
+  // Estilo animado memoizado
+  const animatedButtonStyle = {
+    transform: [{ scale: buttonScale }],
+  };
+
+  if (!appIsReady) {
+    return null; // O un componente de carga simple
+  }
+
+  return (
+    <View style={{ flex: 1 }}>
+      <LinearGradient
+        colors={["#1a3a8f", "#2a4a9f", "#3b5998"]}
+        style={styles.container}
+        // style={{ flex: 1 }}
+        onLayout={() => {}}
+      >
+        {/* <SafeAreaView 
+        style={{ flex: 1 }}
+        edges={Platform.OS === "android" ? ["bottom"] : []} // Solo ajusta el borde inferior en Android
+      > */}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          // style={styles.container}
+          style={{ flex: 1 }}
+        >
+          <SafeAreaView style={{ flex: 1 }}>
+            <View style={styles.loginContainer}>
+              <Image
+                source={require("../assets/logoCar.png")}
+                style={styles.logo}
+                contentFit="contain"
+              />
+
+              <Text style={styles.title}>Bienvenido</Text>
+
+              <View style={styles.inputContainer}>
+                <FontAwesome
+                  name="user"
+                  size={20}
+                  color="#fff"
+                  style={styles.icon}
+                />
+                <TextInput
+                  placeholder="Nombre de usuario o teléfono"
+                  placeholderTextColor="#aaa"
+                  style={styles.input}
+                  value={nick}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  editable={!cargando}
+                />
+              </View>
+
+              <View style={styles.inputContainer}>
+                <FontAwesome
+                  name="lock"
+                  size={20}
+                  color="#fff"
+                  style={styles.icon}
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Contraseña *"
+                  placeholderTextColor="#aaa"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showConfirmPassword}
+                  editable={!cargando}
+                />
+                <TouchableOpacity
+                  style={styles.eyeIcon}
+                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  <Ionicons
+                    name={showConfirmPassword ? "eye-off" : "eye"}
+                    size={24}
+                    color="#999"
+                  />
+                </TouchableOpacity>
+              </View>
+
+              <Animated.View style={animatedButtonStyle}>
+                <TouchableOpacity
+                  style={[styles.button, cargando && styles.disabledButton]}
+                  onPress={handleLogin}
+                  onPressIn={handlePressIn}
+                  onPressOut={handlePressOut}
+                  disabled={cargando || !nick || !password}
+                  activeOpacity={0.7}
+                >
+                  {cargando ? (
+                    <ActivityIndicator color="#4c669f" />
+                  ) : (
+                    <Text style={styles.buttonText}>Iniciar sesión</Text>
+                  )}
+                </TouchableOpacity>
+              </Animated.View>
+
+              <TouchableOpacity
+                disabled={cargando}
+                onPress={() => navigation.navigate("Registro")}
+              >
+                <Text style={styles.registerText}>
+                  ¿No tienes cuenta?{" "}
+                  <Text style={styles.registerLink}>Regístrate</Text>
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                disabled={cargando}
+                onPress={() => navigation.navigate("SolicitarCambioPassw")}
+              >
+                <Text style={styles.registerLink}>Olvidé mi contraseña </Text>
+              </TouchableOpacity>
+            </View>
+          </SafeAreaView>
+        </KeyboardAvoidingView>
+      {/* </SafeAreaView> */}
+      </LinearGradient>
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
-    passwordContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        width: '100%',
-        backgroundColor: '#FFF',
-        borderRadius: 10,
-        marginBottom: 15,
-        borderWidth: 1,  // Agrega borde para mejor visibilidad
-        borderColor: '#DDD',
-    },
-    container: {
-        flex: 1,
-    },
-    loginContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        padding: 20,
-        alignItems: 'center',
-    },
-    anonymousButton: {
-        backgroundColor: '#666',
-        padding: 15,
-        borderRadius: 5,
-        alignItems: 'center',
-        marginTop: 20,
-    },
-    logo: {
-        width: 150,
-        height: 150,
-        marginBottom: 30,
-        borderRadius: 75,
-    },
-    title: {
-        fontSize: 28,
-        color: '#fff',
-        fontWeight: 'bold',
-        marginBottom: 30,
-    },
-    inputContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        width: '100%',
-        maxWidth: 350,
-        backgroundColor: 'rgba(255, 255, 255, 0.2)',
-        borderRadius: 25,
-        paddingHorizontal: 15,
-        marginBottom: 15,
-    },
-    icon: {
-        marginRight: 10,
-    },
-    input: {
-        flex: 1,
-        height: 50,
-        color: '#fff',
-        fontSize: 16,
-    },
-    button: {
-        width: 200,
-        height: 50,
-        backgroundColor: '#fff',
-        borderRadius: 25,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginTop: 20,
-        elevation: 5,
-    },
-    disabledButton: {
-        opacity: 0.7,
-    },
-    buttonText: {
-        color: '#4c669f',
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
-    registerText: {
-        color: '#fff',
-        marginTop: 20,
-    },
-    registerLink: {
-        color: '#fff',
-        fontWeight: 'bold',
-        textDecorationLine: 'underline',
-    },
+  passwordContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+    backgroundColor: "#FFF",
+    borderRadius: 10,
+    marginBottom: 15,
+    borderWidth: 1, // Agrega borde para mejor visibilidad
+    borderColor: "#DDD",
+  },
+  container: {
+    flex: 1,
+  },
+  loginContainer: {
+    flex: 1,
+    // top: -15,
+    justifyContent: "center",
+    padding: 20,
+    alignItems: "center",
+  },
+  anonymousButton: {
+    backgroundColor: "#666",
+    padding: 15,
+    borderRadius: 5,
+    alignItems: "center",
+    marginTop: 20,
+  },
+  logo: {
+    width: 200,
+    height: 200,
+    marginBottom: 30,
+    borderRadius: 75,
+  },
+  title: {
+    fontSize: 28,
+    color: "#fff",
+    fontWeight: "bold",
+    marginBottom: 20,
+  },
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+    maxWidth: 350,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    borderRadius: 25,
+    paddingHorizontal: 15,
+    marginBottom: 15,
+  },
+
+  input: {
+    flex: 1,
+    height: 50,
+    color: "#fff",
+    fontSize: 16,
+  },
+  icon: {
+    marginRight: 10,
+  },
+  button: {
+    width: 200,
+    height: 50,
+    backgroundColor: "#fff",
+    borderRadius: 25,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 20,
+    elevation: 5,
+  },
+  disabledButton: {
+    opacity: 0.7,
+  },
+  buttonText: {
+    color: "#4c669f",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  registerText: {
+    color: "#fff",
+    marginTop: 30,
+    textAlign: "center",
+    fontSize: 15,
+  },
+  resetPasswText: {
+    color: "#fff",
+    marginTop: 10,
+  },
+  registerLink: {
+    color: "#fff",
+    fontWeight: "bold",
+    textDecorationLine: "underline",
+    marginTop: 20,
+    textAlign: "center",
+    paddingTop: 10,
+  },
 });
 export default LoginScreenEste;

@@ -2,17 +2,17 @@
   "expo": {
     "name": "appImperio",
     "slug": "appImperio",
-    "version": "1.0.0",
+    "version": "1.0.18",
     "orientation": "portrait",
-    "icon": "./assets/LogoImperio.png",
-    "newArchEnabled": true,
+    "icon": "./assets/iconoA.png",
     "splash": {
-      "image": "./assets/LogoImperio.png",
+      "image": "./assets/icono1.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#033683"
     },
     "ios": {
       "supportsTablet": true,
+      "jsEngine": "hermes",
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "Permite acceder a tu galería para subir imágenes.",
         "ITSAppUsesNonExemptEncryption": false
@@ -20,20 +20,72 @@
       "bundleIdentifier": "com.anonymous.appImperio"
     },
     "android": {
+      "permissions": [
+        "INTERNET",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "CAMERA"
+      ],
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/icono.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.appImperio"
+      "softwareKeyboardLayoutMode": "pan",
+      "package": "com.anonymous.appImperio",
+      "jsEngine": "hermes",
+      "versionCode": 38
     },
     "web": {
-      "favicon": "./assets/LogoImperio.png"
+      "favicon": "./assets/iconoA.png",
+      "build": {
+        "bundle": true,
+        "minify": true,
+        "sourceMaps": false,
+        "babel": {
+          "include": [
+            "react-native-reanimated"
+          ]
+        }
+      }
     },
     "extra": {
       "eas": {
-        "projectId": "54e755af-9237-40a2-b5df-f2c979c20e29"
-      }
+        "projectId": "54e755af-9237-40a2-b5df-f2c979c20e29",
+        "NODE_ENV": "development"
+      },
+      "server": "82.23.146.68/app/back/imp",
+      "dirImg": "82.23.146.68/uploads/",
+      "update": "82.23.146.68/descarga/version.json",
+      "imperioAppId": "1"
     },
-    "owner": "naruto9312"
+    "owner": "naruto9312",
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 34,
+            "targetSdkVersion": 34,
+            "buildToolsVersion": "34.0.0",
+            "minSdkVersion": 24,
+            "enableHermes": true
+          },
+          "ios": {
+            "deploymentTarget": "15.1",
+            "enableHermes": true
+          }
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash2.png",
+          "backgroundColor": "#033683",
+          "resizeMode": "contain"
+        }
+      ],
+      "expo-font",
+      "expo-asset"
+    ]
   }
 }

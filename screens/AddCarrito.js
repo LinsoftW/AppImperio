@@ -1,16 +1,12 @@
-import React from 'react';
 import { TouchableOpacity, Text, Alert } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
-import axios from 'axios';
 import { useUser } from '../context/UserContext';
-import { Config } from '../Config';
+import Constants from "expo-constants";
 import api from '../api/api';
-// import Config from 'react-native-config';
+import { MaterialIcons } from '@expo/vector-icons';
 
 const AddToCartButton = ({ productoId, cantidad = 1 }) => {
     const { user } = useUser(); // Usa el hook personalizado
-    // const server = '192.168.1.101';
-    // const puerto = "5000";
+    const { server, dirImg } = Constants.expoConfig.extra;
 
     const agregarAlCarrito = async () => {
         if (!user) {
@@ -28,12 +24,7 @@ const AddToCartButton = ({ productoId, cantidad = 1 }) => {
         }
 
         try {
-            // await axios.post(`http://${Config.server}/carrito/agregar`, {
-            //     usuario_id: user.id,
-            //     producto_id: productoId,
-            //     cantidad: cantidad
-            // });
-            await api.post(`http://${Config.server}/carrito/agregar`,
+            await api.post(`http://${server}/carrito/agregar`,
                 {
                     usuario_id: user.id,
                     producto_id: productoId,
@@ -51,7 +42,7 @@ const AddToCartButton = ({ productoId, cantidad = 1 }) => {
             style={styles.cartButton}
             onPress={agregarAlCarrito}
         >
-            <Icon name="add-shopping-cart" size={24} color="white" />
+            <MaterialIcons name="add-shopping-cart" size={24} color="white" />
             <Text style={styles.buttonText}>Agregar al carrito</Text>
         </TouchableOpacity>
     );
