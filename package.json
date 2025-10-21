@@ -69,6 +69,7 @@
   },
   "devDependencies": {
     "@react-native-community/cli": "latest",
+    "babel-plugin-react-compiler": "^19.0.0-beta-e993439-20250405",
     "cross-env": "^7.0.3",
     "expo-module-scripts": "^4.1.7",
     "imagemin-mozjpeg": "^10.0.0",
