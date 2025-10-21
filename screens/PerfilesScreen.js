@@ -69,9 +69,14 @@ const ProfileScreen = ({ navigation, route }) => {
         (u) => u.attributes?.nick === user?.nick
       );
       if (userData) setUsuario(userData);
+      // console.log("Usuario obtenido:", userData);
     } catch (e) {
       console.error("Error al obtener usuario:", e);
     }
+  };
+
+  const validatePasswordsMatch = () => {
+     return newPassword === confirmPassword;
   };
 
   // Función para obtener los pedidos del usuario
@@ -151,13 +156,14 @@ const ProfileScreen = ({ navigation, route }) => {
     setError("");
 
     // Validaciones
+    // console.log(currentPassword, newPassword, confirmPassword);
     if (!currentPassword || !newPassword || !confirmPassword) {
       setError("Todos los campos son obligatorios");
       return;
     }
 
-    if (newPassword !== confirmPassword) {
-      setError("Las nuevas contraseñas no coinciden");
+    if (!validatePasswordsMatch()) {
+      alert("Las contraseñas nuevas no coinciden");
       return;
     }
 
@@ -167,14 +173,19 @@ const ProfileScreen = ({ navigation, route }) => {
     }
 
     try {
-      await changePassword(currentPassword, newPassword);
-      // Alert.alert('Éxito', 'Contraseña cambiada correctamente');
-      showToast(`✅ Éxito', 'Contraseña cambiada correctamente`);
-      setShowPasswordModal(false);
-      // Limpiar campos
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
+      const result = await changePassword(currentPassword, newPassword);
+      if (result.success) {
+         // Mostrar mensaje de éxito
+         alert(`✅ Contraseña cambiada satisfactoriamente.`);
+        //  showToast(`✅ Éxito', 'Contraseña cambiada correctamente`);
+         setShowPasswordModal(false);
+      
+         // Limpiar formulario
+         setCurrentPassword("");
+         setNewPassword("");
+         setConfirmPassword("");
+      }
+      
     } catch (error) {
       setError(error.message || "Error al cambiar la contraseña");
     }

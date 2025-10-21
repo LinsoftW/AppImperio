@@ -113,7 +113,7 @@ const ListaTarjetasScreen = ({ navigation }) => {
             <Text style={styles.headerTitle1}>      Listado de tarjetas del sistema</Text>
             <View style={{ width: 24 }} />
           </View>
-        <Text style={styles.headerText}>Mis Tarjetas</Text>
+        {/* <Text style={styles.headerText}>Mis Tarjetas</Text> */}
         <FlatList
           data={tarjetas}
           renderItem={renderItem}

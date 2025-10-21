@@ -89,28 +89,82 @@ export const UserProvider = ({ children }) => {
   //   await AsyncStorage.removeItem("userData");
   // };
 
-  const changePassword = async (currentPassword, newPassword) => {
-    // console.log(currentPassword)
-    try {
-      const response = await api.put("/auth/change-password", {
-        userId: user.id,
-        currentPassword,
-        newPassword,
-      });
+//   const changePassword = async (currentPassword, newPassword) => {
+//     // console.log("Clave actual: ",currentPassword)
+//     try {
+//       const response = await api.put("/auth/change-password", {
+//         userId: user.id,
+//         currentPassword,
+//         newPassword,
+//       });
+// // console.log(response)
+//       if (!response.data.success) {
+//         throw new Error(
+//           response.data.message || "Error al cambiar la contraseña"
+//         );
+//       }
 
-      if (!response.data.success) {
-        throw new Error(
-          response.data.message || "Error al cambiar la contraseña"
-        );
-      }
+//       return true;
+//     } catch (error) {
+//       throw new Error(
+//         error.response?.data?.message || "Error al cambiar la contraseña"
+//       );
+//     }
+//   };
 
-      return true;
-    } catch (error) {
+const changePassword = async (currentPassword, newPassword) => {
+  try {
+    // Validaciones básicas en el frontend
+    if (!currentPassword || !newPassword) {
+      throw new Error("Se requieren tanto la contraseña actual como la nueva");
+    }
+
+    if (currentPassword === newPassword) {
+      throw new Error("La nueva contraseña debe ser diferente a la actual");
+    }
+
+    // Expresión regular para validar contraseña
+    const passwordRegex = /(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}/;
+    if (!passwordRegex.test(newPassword)) {
       throw new Error(
-        error.response?.data?.message || "Error al cambiar la contraseña"
+        "La nueva contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número"
       );
     }
-  };
+
+    // ✅ CORREGIDO: No enviar userId, el backend lo obtiene del token
+    const response = await api.put("/auth/change-password", {
+      currentPassword,
+      newPassword,
+    });
+    // console.log(response);
+
+    if (!response.data.success) {
+      throw new Error(
+        response.data.message || "Error al cambiar la contraseña"
+      );
+    }
+
+    return {
+      success: true,
+      message: response.data.message || "Contraseña cambiada exitosamente"
+    };
+  } catch (error) {
+    // Manejo mejorado de errores
+    if (error.response) {
+      // Error del servidor (4xx, 5xx)
+      throw new Error(
+        error.response.data?.message || 
+        "Error del servidor al cambiar la contraseña"
+      );
+    } else if (error.request) {
+      // Error de red
+      throw new Error("Error de conexión. Verifica tu internet.");
+    } else {
+      // Error local (validaciones, etc.)
+      throw error;
+    }
+  }
+};
 
   const logout = async () => {
     try {

@@ -128,7 +128,8 @@ const AgregarTarjetaScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5'
+    backgroundColor: '#F5F5F5',
+    top: 10
   },
   header: {
     padding: 20,
