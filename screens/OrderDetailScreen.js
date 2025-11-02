@@ -88,7 +88,7 @@ const OrderDetailScreen = ({ navigation, route }) => {
           </View>
           
           <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Método de pago:</Text>
+            <Text style={styles.infoLabel}>Número de transacción:</Text>
             <Text style={styles.infoValue}>{order.attributes.transaccion}</Text>
           </View>
           

@@ -4,9 +4,9 @@
     "slug": "appImperio",
     "version": "1.0.18",
     "orientation": "portrait",
-    "icon": "./assets/iconoA.png",
+    "icon": "./assets/icono1.png",
     "splash": {
-      "image": "./assets/icono1.png",
+      "image": "./assets/logoCar.png",
       "resizeMode": "contain",
       "backgroundColor": "#033683"
     },
@@ -27,7 +27,7 @@
         "CAMERA"
       ],
       "adaptiveIcon": {
-        "foregroundImage": "./assets/icono.png",
+        "foregroundImage": "./assets/icono1.png",
         "backgroundColor": "#ffffff"
       },
       "softwareKeyboardLayoutMode": "pan",
@@ -36,7 +36,7 @@
       "versionCode": 38
     },
     "web": {
-      "favicon": "./assets/iconoA.png",
+      "favicon": "./assets/icono1.png",
       "build": {
         "bundle": true,
         "minify": true,
@@ -59,7 +59,7 @@
         "expo-build-properties",
         {
           "android": {
-            "compileSdkVersion": 34,
+            "compileSdkVersion": 35,
             "targetSdkVersion": 34,
             "buildToolsVersion": "34.0.0",
             "minSdkVersion": 24,
@@ -74,7 +74,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/splash2.png",
+          "image": "./assets/logoCar.png",
           "backgroundColor": "#033683",
           "resizeMode": "contain"
         }
