@@ -1508,7 +1508,7 @@ const EliminarProducto = ({ navigation, route }) => {
         source={{
           uri:
             item.attributes.imagen === null
-              ? `http://190.6.81.46/uploads/iconoI.png`
+              ? `http://82.23.146.68/uploads/iconoI.png`
               : `http://${dirImg}${item.attributes.imagen.split("/").pop()}`,
         }}
         cachePolicy="memory-disk"

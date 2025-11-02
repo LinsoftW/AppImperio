@@ -223,7 +223,7 @@ export default function AddProductos(route) {
           headers: {
             "Content-Type": "multipart/form-data",
           },
-          timeout: 30000, // 30 segundos de timeout
+          timeout: 60000, // 30 segundos de timeout
         }
       );
 

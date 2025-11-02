@@ -5642,11 +5642,11 @@ const HomeScreen = ({ navigation, route }) => {
         setLoadingMore(true);
       }
 
-      console.log(`📦 Cargando página ${pageNum}...`);
+      // console.log(`📦 Cargando página ${pageNum}...`);
       const productosRes = await api.get(`/productos?page=${pageNum}&limit=20`);
       const nuevosProductos = productosRes.data.datos || [];
       
-      console.log(`📦 Página ${pageNum}: ${nuevosProductos.length} productos cargados`);
+      // console.log(`📦 Página ${pageNum}: ${nuevosProductos.length} productos cargados`);
       
       if (pageNum === 1 || isRefresh) {
         // Primera página o refresh - reemplazar todos los productos
@@ -5658,7 +5658,7 @@ const HomeScreen = ({ navigation, route }) => {
           p?.attributes?.destacado === 1 && p?.attributes?.precio !== undefined
         );
         setDestacados(destacadosData);
-        console.log("⭐ Destacados actualizados:", destacadosData.length);
+        // console.log("⭐ Destacados actualizados:", destacadosData.length);
       } else {
         // Página siguiente - agregar productos
         setProductos(prev => {
@@ -5681,8 +5681,8 @@ const HomeScreen = ({ navigation, route }) => {
       const hayMasPaginas = pageNum < totalPages;
       setHasMore(hayMasPaginas);
       
-      console.log(`📄 Total páginas: ${totalPages}, ¿Hay más?: ${hayMasPaginas}`);
-      console.log(`📊 Total productos cargados: ${pageNum === 1 ? nuevosProductos.length : productos.length + nuevosProductos.length}`);
+      // console.log(`📄 Total páginas: ${totalPages}, ¿Hay más?: ${hayMasPaginas}`);
+      // console.log(`📊 Total productos cargados: ${pageNum === 1 ? nuevosProductos.length : productos.length + nuevosProductos.length}`);
 
     } catch (error) {
       console.error("❌ Error cargando productos:", error);
@@ -5696,7 +5696,7 @@ const HomeScreen = ({ navigation, route }) => {
   // Función para cargar todos los datos iniciales
   const loadAllData = async () => {
     try {
-      console.log("🔄 Iniciando carga de datos...");
+      // console.log("🔄 Iniciando carga de datos...");
 
       // Cargar productos (página 1)
       await loadProducts(1, true);
@@ -5719,7 +5719,7 @@ const HomeScreen = ({ navigation, route }) => {
     try {
       const categoriasRes = await api.get("/categorias");
       setCategorias(categoriasRes.data.datos || []);
-      console.log("📂 Categorías cargadas:", categoriasRes.data.datos?.length || 0);
+      // console.log("📂 Categorías cargadas:", categoriasRes.data.datos?.length || 0);
     } catch (error) {
       console.error("❌ Error cargando categorías:", error);
     }
@@ -5730,7 +5730,7 @@ const HomeScreen = ({ navigation, route }) => {
     try {
       const contactsRes = await api.get("/contactos");
       setContacts(contactsRes.data.datos || []);
-      console.log("📞 Contactos cargados:", contactsRes.data.datos?.length || 0);
+      // console.log("📞 Contactos cargados:", contactsRes.data.datos?.length || 0);
     } catch (error) {
       console.error("❌ Error cargando contactos:", error);
     }
@@ -5741,7 +5741,7 @@ const HomeScreen = ({ navigation, route }) => {
     try {
       const tarjetasRes = await api.get("/tarjetas");
       setTarjetas(tarjetasRes.data.data || []);
-      console.log("💳 Tarjetas cargadas:", tarjetasRes.data.data?.length || 0);
+      // console.log("💳 Tarjetas cargadas:", tarjetasRes.data.data?.length || 0);
     } catch (error) {
       console.error("❌ Error cargando tarjetas:", error);
     }
@@ -5754,9 +5754,9 @@ const HomeScreen = ({ navigation, route }) => {
     try {
       const favoritosRes = await api.get(`/favoritos-detalles/${user.id}`);
       setFavoritos(favoritosRes.data.data || []);
-      console.log("❤️ Favoritos cargados:", favoritosRes.data.data?.length || 0);
+      // console.log("❤️ Favoritos cargados:", favoritosRes.data.data?.length || 0);
     } catch (error) {
-      console.log("❌ Error cargando favoritos:", error);
+      // console.log("❌ Error cargando favoritos:", error);
     }
   };
 
@@ -5768,7 +5768,7 @@ const HomeScreen = ({ navigation, route }) => {
   // Cargar más productos cuando cambia la página
   useEffect(() => {
     if (page > 1) {
-      console.log("🎯 Cambió la página a:", page);
+      // console.log("🎯 Cambió la página a:", page);
       loadProducts(page);
     }
   }, [page]);
@@ -5794,14 +5794,14 @@ const HomeScreen = ({ navigation, route }) => {
       return matchesSearch && matchesCategory;
     });
 
-    console.log("🔍 Productos filtrados:", filtered.length);
+    // console.log("🔍 Productos filtrados:", filtered.length);
     setFilteredProductos(filtered);
   }, [searchQuery, selectedCategory, productos]);
 
   // Función para cargar más productos
   const handleLoadMore = () => {
     if (!loading && hasMore && !loadingMore && !refreshing) {
-      console.log("🔄 Cargando más productos...");
+      // console.log("🔄 Cargando más productos...");
       setPage(prev => prev + 1);
     }
   };

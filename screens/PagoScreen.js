@@ -33,6 +33,7 @@ const CheckoutScreen = ({ navigation, route }) => {
     // }
     // console.log(iSEnzonaInstalda)
     const url = "https://enzona.net";
+    const urlApi = "https://apisandbox.enzona.net/payment/v1.0.0/payments/"
     try {
       await Linking.openURL(url);
     } catch (error) {

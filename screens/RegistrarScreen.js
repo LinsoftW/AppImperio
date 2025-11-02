@@ -153,7 +153,7 @@ export default function RegistroScreen({ navigation }) {
         headers: {
           "Content-Type": "multipart/form-data",
         },
-        timeout: 30000, // 30 segundos de timeout
+        timeout: 60000, // 30 segundos de timeout
       });
       // const response = await api.post(`/upload`, formData);
 

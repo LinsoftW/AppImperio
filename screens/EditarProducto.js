@@ -60,8 +60,8 @@ export default function EditarProducto() {
         idcategoria: producto.attributes.idcategoria,
       });
       if (producto.attributes.imagen == null) {
-        setOriginalImage(`http://190.6.81.46/uploads/iconoI.png`);
-        setImage(`http://190.6.81.46/uploads/iconoI.png`);
+        setOriginalImage(`http://82.23.146.68/uploads/iconoI.png`);
+        setImage(`http://82.23.146.68/uploads/iconoI.png`);
       } else {
         setOriginalImage(
           `http://${dirImg}${producto.attributes.imagen.split("/").pop()}`
