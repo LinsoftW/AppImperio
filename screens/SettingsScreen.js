@@ -426,7 +426,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     // paddingHorizontal: 10,
-    paddingTop: 40,
+    paddingTop: 20,
   },
   scrollContainer: {
     flex: 1,

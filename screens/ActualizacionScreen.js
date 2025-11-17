@@ -39,7 +39,7 @@ const ActualizacionScreen = ({ route }) => {
   const downloadResumableRef = useRef(null);
   const navigation = useNavigation();
 
-  const APK_URL = "http://190.6.81.46/descarga/AppImperio.apk";
+  const APK_URL = "http://82.23.146.68/descarga/AppImperio.apk";
   const VERSION_CHECK_URL = `http://${update}`;
 
   const isFocused = useIsFocused();
@@ -47,7 +47,7 @@ const ActualizacionScreen = ({ route }) => {
   useEffect(() => {
     if (isFocused || route.params?.refresh) {
       checkForUpdates();
-      setCurrentVersion(Constants.expoConfig.version || "1.0.1");
+      setCurrentVersion(Constants.expoConfig.version || "1.0.19");
       checkStoragePermission();
     }
   }, [isFocused, route.params?.refresh]);
@@ -410,7 +410,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    padding: 20,
+    padding: 1,
   },
   content: {
     flex: 1,

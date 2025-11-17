@@ -466,7 +466,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     padding: 16,
-    paddingTop: Constants.statusBarHeight + 16,
+    paddingTop: Constants.statusBarHeight + 1,
   },
   headerTitle: {
     fontSize: 18,

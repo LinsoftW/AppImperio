@@ -289,6 +289,7 @@ export default function AddProductos(route) {
             value={productData.nombre}
             color="#000"
             onChangeText={(text) => handleChange("nombre", text)}
+            maxLength={25}
           />
 
           <TextInput
@@ -319,6 +320,7 @@ export default function AddProductos(route) {
             placeholder="Descripción"
             value={productData.descripcion}
             onChangeText={(text) => handleChange("descripcion", text)}
+            maxLength={250}
           />
 
 
@@ -428,9 +430,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    top: 10,
+    top: 5,
     padding: 16,
-    paddingTop: 30,
+    paddingTop: 15,
   },
   headerTitle: {
     fontSize: 18,

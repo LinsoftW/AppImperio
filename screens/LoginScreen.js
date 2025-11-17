@@ -344,6 +344,15 @@ const LoginScreenEste = ({ navigation }) => {
                 </TouchableOpacity>
               </Animated.View>
 
+              {/* <TouchableOpacity
+                disabled={cargando}
+                onPress={() => handleAnonymousLogin()}
+              >
+                <Text style={styles.registerLink}>
+                  Entrar como invitado
+                </Text>
+              </TouchableOpacity> */}
+
               <TouchableOpacity
                 disabled={cargando}
                 onPress={() => navigation.navigate("Registro")}

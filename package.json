@@ -1,6 +1,6 @@
 {
   "name": "appimperio",
-  "version": "1.0.18",
+  "version": "1.0.19",
   "main": "index.js",
   "scripts": {
     "start": "cross-env NODE_ENV=development expo start",

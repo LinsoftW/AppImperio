@@ -480,7 +480,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     top: 10,
     padding: 16,
-    paddingTop: 20,
+    paddingTop: 10,
   },
   headerTitle: {
     fontSize: 18,
@@ -553,13 +553,13 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    padding: 28,
+    padding: 20,
     backgroundColor: "#f5f5f5",
-    paddingTop: 10,
+    paddingTop: 1,
   },
   searchInput: {
     backgroundColor: "white",
-    padding: 12,
+    padding: 10,
     borderRadius: 8,
     marginBottom: 16,
     borderWidth: 1,

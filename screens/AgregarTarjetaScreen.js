@@ -129,11 +129,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F5F5',
-    top: 10
+    // top: 10
   },
   header: {
     padding: 20,
-    paddingTop: 20,
+    paddingTop: 10,
     flexDirection: 'row',
     alignItems: 'center'
   },

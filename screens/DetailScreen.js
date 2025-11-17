@@ -291,9 +291,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    top: 10,
-    padding: 16,
-    paddingTop: 8,
+    top: 1,
+    padding: 15,
+    paddingTop: 1,
   },
   headerTitle: {
     fontSize: 18,
