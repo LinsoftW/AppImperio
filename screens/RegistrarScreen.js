@@ -245,6 +245,7 @@ export default function RegistroScreen({ navigation }) {
           // nombre: userData.nombre,
           // apellido1: userData.apellido1,
           password: userData.password,
+          direccion: userData.direccion,
           // Campos opcionales solo si tienen valor
           // ...(userData.apellido2 && { apellido2: userData.apellido2 }),
           // ...(userData.direccion && { direccion: userData.direccion }),
@@ -263,6 +264,7 @@ export default function RegistroScreen({ navigation }) {
           // nombre: userData.nombre,
           // apellido1: userData.apellido1,
           password: userData.password,
+          direccion: userData.direccion,
           // Campos opcionales solo si tienen valor
           // ...(userData.apellido2 && { apellido2: userData.apellido2 }),
           // ...(userData.direccion && { direccion: userData.direccion }),
@@ -444,14 +446,32 @@ export default function RegistroScreen({ navigation }) {
           /> */}
 
           {/* <TextInput
-            style={[styles.input, styles.multilineInput]}
+            style={[styles.input]}
             placeholder="Dirección *"
             value={userData.direccion}
             onChangeText={(text) => handleChange("direccion", text)}
             multiline
             numberOfLines={3}
             editable={!registering}
-          /> */}
+          />  */}
+          {/* Campo Dirección */}
+<View style={styles.inputContainer}>
+  <FontAwesome
+    name="map-marker"
+    size={20}
+    color="#fff"
+    style={styles.icon}
+  />
+  <TextInput
+    placeholder=" Dirección"
+    placeholderTextColor="#aaa"
+    style={styles.input}
+    value={userData.direccion}
+    onChangeText={(text) => handleChange("direccion", text)}
+    autoCapitalize="none"
+    editable={!registering}
+  />
+</View>
           <View style={styles.inputContainer}>
             <FontAwesome
               name="lock"
